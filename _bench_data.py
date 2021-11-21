@@ -24,10 +24,12 @@ _random_char_f = _partial(_choice, tuple(_letters))
 
 
 def _data_values_iterator(n=1_000_000, min_str_len=35, ):
-	n = max(n, 1)
-	max_len = len(str(n)) + 1  # always have at least one non-numeric char
-	max_len = max(max_len, min_str_len)
-
+	n = max(int(n), 1)
+	max_padded_number_len = max(
+		2,  # even with single-digit number, it will be 2 wit at least 1 char
+		len(str(n)) + 1,  # always have at least one non-numeric char
+		int(min_str_len) - 2,  # 2 chars are taken by '0:'
+	)
 	float_scale = float(100.0 / n)
 
 	def generate_str(field_i_str: str, number_str: str, n_prefix_chars: int):
@@ -39,7 +41,7 @@ def _data_values_iterator(n=1_000_000, min_str_len=35, ):
 		float_val = item_i * float_scale
 		number_str = str(item_i)
 		number_len = len(number_str)
-		n_prefix_chars = max(0, max_len - number_len)
+		n_prefix_chars = max(1, max_padded_number_len - number_len)
 		return (
 			item_i,
 			(neg_i, 0),         float_val, generate_str("0", number_str, n_prefix_chars),
