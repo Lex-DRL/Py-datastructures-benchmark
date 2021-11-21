@@ -47,7 +47,7 @@ def _data_values_iterator(n=1_000_000, min_str_len=35, ):
 			(neg_i, 2), 200.0 + float_val, generate_str("2", number_str, n_prefix_chars),
 		)
 
-	return map(single_item_values, range(n))
+	return map(single_item_values, range(1, n + 1))
 
 
 def _data_dicts_iterator(n=1_000_000, min_str_len=35, ):
