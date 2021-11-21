@@ -5,6 +5,9 @@
 __author__ = 'Lex Darlog (DRL)'
 
 from typing import (
+	Any as _Any,
+	AnyStr as _AnyStr,
+	Dict as _Dict,
 	Tuple as _Tuple,
 	NamedTuple as _NamedTuple,
 )
@@ -19,8 +22,13 @@ import string as _string
 from types import SimpleNamespace
 
 import attr as _attr
-from pydantic import BaseModel as _pydBaseModel
+from pydantic import (
+	BaseModel as _pydBaseModel,
+	Field as _pydField,
+	validator as _pyd_val,
+)
 from pydantic.dataclasses import dataclass as _pyd_dataclass
+from pydantic.fields import ModelField as _pydModelField
 
 
 _tpl_ii = _Tuple[int, int]
@@ -333,30 +341,40 @@ def _val_i(inst, attr: _attr.Attribute, value):
 		raise ValueError(f"'{attr.name}' must be positive int (got: {value!r})")
 
 
+def _val_it_common(
+	i: int, attr_name: str, value_in, value, instance_i: int
+) -> _tpl_ii:
+	assert isinstance(instance_i, int)
+	assert isinstance(value, tuple)
+
+	def error(suffix=''):
+		return ValueError(
+			f"'{attr_name}' must be a tuple of 2 ints{suffix} (got: {value_in!r})"
+		)
+
+	if len(value) != 2:
+		raise error()
+	a, b = value
+	if a != -instance_i:
+		if a == instance_i:
+			raise error(f", first being !!NEGATIVE!! 'i', i.e. {-instance_i}")
+		raise error(f", first being negative 'i', i.e. {-instance_i}")
+	if b != i:
+		raise error(f', second being {i}')
+	return value
+
+
 def _val_it_f(i: int):
-	def _val_it_x(inst, attr: _attr.Attribute, value):
+	def validator(inst, attr: _attr.Attribute, value):
 		"""A tuple validator mimicking some real-world checks."""
 		_val_tpl(inst, attr, value)
 		assert isinstance(
 			inst, (AttrClass, AttrClassSlots)
 		)
-		assert isinstance(value, tuple)
+		_val_it_common(i, attr.name, value, value, inst.i)
 
-		def error(suffix=''):
-			return ValueError(
-				f"'{attr.name}' must be a tuple of 2 ints{suffix} (got: {value!r})"
-			)
-
-		if len(value) != 2:
-			raise error()
-		a, b = value
-		if a > 0:
-			raise error(', first being negative')
-		if b != i:
-			raise error(f', second being {i}')
-
-	_val_it_x.__name__ = f'_val_it{i}'
-	return _val_it_x
+	validator.__name__ = f'_val_it{i}'
+	return validator
 
 
 _val_it0 = _val_it_f(0)
@@ -366,7 +384,7 @@ _val_it2 = _val_it_f(2)
 
 # noinspection PyShadowingBuiltins
 def _val_flt_f(i: int, min=0.0, max=100.0):
-	def _val_f_x(inst, attr: _attr.Attribute, value):
+	def validator(inst, attr: _attr.Attribute, value):
 		_val_flt(inst, attr, value)
 		assert isinstance(
 			inst, (AttrClass, AttrClassSlots)
@@ -378,8 +396,8 @@ def _val_flt_f(i: int, min=0.0, max=100.0):
 				f"[{min:.2f}, {max:.2f}] (got: {value!r})"
 			)
 
-	_val_f_x.__name__ = f'_val_f{i}'
-	return _val_f_x
+	validator.__name__ = f'_val_f{i}'
+	return validator
 
 
 _val_f0 = _val_flt_f(0, 0.0, 100.0)
@@ -387,43 +405,51 @@ _val_f1 = _val_flt_f(1, 100.0, 200.0)
 _val_f2 = _val_flt_f(2, 200.0, 300.0)
 
 
+def _val_s_common(
+	i: int, i_str: str, attr_name: str, value_in, value, instance_i: int
+):
+	assert isinstance(instance_i, int)
+	assert isinstance(value, str)
+
+	def error(suffix=''):
+		return ValueError(
+			f"'{attr_name}' must be a string in format: "
+			f"'{i}:RandomPaddingLettersWithNoZeroes{{i}}'; got: {value_in!r}{suffix}"
+		)
+
+	split = value.split(':')
+	if len(split) != 2:
+		raise error()
+	if split[0] != i_str:
+		raise error(f" (starting int {split[0]!r} != {i_str})")
+
+	b = split[1].lstrip(_string.ascii_letters)
+	if b.startswith('0') and b != '0':
+		raise error(f" (there are zeroes in int-padding part: {b!r})")
+	if not b:
+		raise error(" (there's no int at the end)")
+
+	try:
+		b_int = int(b)
+	except ValueError:
+		raise error(f" (there's {b!r} at the end instead of valid int)")
+	if b_int != instance_i or b == '-0':
+		raise error(f" (trailing int {b!r} is not equal to 'i' value: {instance_i})")
+	return value
+
+
 def _val_s_f(i: int):
 	i_str = str(i)
 
-	def _val_s_x(inst, attr: _attr.Attribute, value):
+	def validator(inst, attr: _attr.Attribute, value):
 		_val_str(inst, attr, value)
 		assert isinstance(
 			inst, (AttrClass, AttrClassSlots)
 		)
-		assert isinstance(value, str)
+		_val_s_common(i, i_str, attr.name, value, value, inst.i)
 
-		def error(suffix=''):
-			return ValueError(
-				f"'{attr.name}' must be a string in format: "
-				f"'{i}:RandomPaddingLettersWithNoZeroes{{i}}'; got: {value!r}{suffix}"
-			)
-
-		split = value.split(':')
-		if len(split) != 2:
-			raise error()
-		if split[0] != i_str:
-			raise error(f" (starting int {split[0]!r} != {i_str})")
-
-		b = split[1].lstrip(_string.ascii_letters)
-		if b.startswith('0') and b != '0':
-			raise error(f" (there are zeroes in int-padding part: {b!r})")
-		if not b:
-			raise error(" (there's no int at the end)")
-
-		try:
-			b_int = int(b)
-		except ValueError:
-			raise error(f" (there's {b!r} at the end instead of valid int)")
-		if b_int != inst.i or b == '-0':
-			raise error(f" (trailing int {b!r} is not equal to 'i' value: {inst.i})")
-
-	_val_s_x.__name__ = f'_val_s{i_str}'
-	return _val_s_x
+	validator.__name__ = f'_val_s{i_str}'
+	return validator
 
 
 _val_s0 = _val_s_f(0)
@@ -473,56 +499,135 @@ class AttrClassSlots:
 	s2: str = _attr.ib(_Defaults.s2, validator=_val_s2, )
 
 
+# ---------------------------- pydantic validators ----------------------------
+
+
+def _pyd_val_it(*fields: str, i: int, ):
+	def validator(value_in, values: _Dict[_AnyStr, _Any], field: _pydModelField):
+		value = value_in
+		# replicate _attr.validators.instance_of(tuple):
+		if not isinstance(value, tuple):
+			# noinspection PyBroadException
+			try:
+				value = tuple(value)
+			except Exception:
+				raise TypeError(
+					f"'{field.name}' must be {tuple!r} "
+					f"(got {value_in!r} that is a {type(value_in)!r})."
+				)
+		return _val_it_common(i, field.name, value_in, value, values['i'])
+
+	validator.__name__ = fields[0]
+	return _pyd_val(*fields, pre=True, allow_reuse=True, )(validator)
+
+
+def _pyd_val_s(*fields: str, i: int, ):
+	i_str = str(i)
+
+	# noinspection DuplicatedCode
+	def validator(value_in, values: _Dict[_AnyStr, _Any], field: _pydModelField):
+		# replicate _attr.validators.instance_of(str):
+		value = value_in
+		if not isinstance(value, str):
+			# noinspection PyBroadException
+			try:
+				value = str(value)
+			except Exception:
+				raise TypeError(
+					f"'{field.name}' must be {str!r} "
+					f"(got {value!r} that is a {type(value)!r})."
+				)
+		return _val_s_common(i, i_str, field.name, value_in, value, values['i'])
+
+	validator.__name__ = fields[0]
+	return _pyd_val(*fields, pre=True, allow_reuse=True, )(validator)
+
+
 # ---------------------------- pydantic BaseModel ----------------------------
+
+
+# noinspection PyPep8Naming
+class _pydConfig:
+	__name__ = 'Config'
+	validate_all = True
+	validate_assignment = True
 
 
 # noinspection DuplicatedCode,SpellCheckingInspection
 class PydanticBase(_pydBaseModel):
-	i: int = _Defaults.i
-	it0: _tpl_ii = _Defaults.it0
-	f0: float = _Defaults.f0
+	Config = _pydConfig
+
+	i: int = _pydField(default=_Defaults.i, gt=-1)
+	it0: _tpl_ii = _pydField(default_factory=_default_it0_f)
+	f0: float = _pydField(default=_Defaults.f0, ge=0.0, le=100.0)
 	s0: str = _Defaults.s0
-	it1: _tpl_ii = _Defaults.it1
-	f1: float = _Defaults.f1
+	it1: _tpl_ii = _pydField(default_factory=_default_it1_f)
+	f1: float = _pydField(default=_Defaults.f1, ge=100.0, le=200.0)
 	s1: str = _Defaults.s1
-	it2: _tpl_ii = _Defaults.it2
-	f2: float = _Defaults.f2
+	it2: _tpl_ii = _pydField(default_factory=_default_it2_f)
+	f2: float = _pydField(default=_Defaults.f2, ge=200.0, le=300.0)
 	s2: str = _Defaults.s2
+
+	_val_it0 = _pyd_val_it('it0', i=0)
+	_val_it1 = _pyd_val_it('it1', i=1)
+	_val_it2 = _pyd_val_it('it2', i=2)
+
+	_val_s0 = _pyd_val_s('s0', i=0)
+	_val_s1 = _pyd_val_s('s1', i=1)
+	_val_s2 = _pyd_val_s('s2', i=2)
 
 
 # ---------------------------- pydantic dataclass ----------------------------
 
 
 # noinspection DuplicatedCode,SpellCheckingInspection
-@_pyd_dataclass(order=True, unsafe_hash=True, frozen=False, )
+@_pyd_dataclass(config=_pydConfig, order=True, unsafe_hash=True, frozen=False, )
 class PydanticDataClass:
-	i: int = _Defaults.i
-	it0: _tpl_ii = _field(default_factory=_default_it0_f)
-	f0: float = _Defaults.f0
+	i: int = _pydField(default=_Defaults.i, gt=-1)
+	it0: _tpl_ii = _pydField(default_factory=_default_it0_f)
+	f0: float = _pydField(default=_Defaults.f0, ge=0.0, le=100.0)
 	s0: str = _Defaults.s0
-	it1: _tpl_ii = _field(default_factory=_default_it1_f)
-	f1: float = _Defaults.f1
+	it1: _tpl_ii = _pydField(default_factory=_default_it1_f)
+	f1: float = _pydField(default=_Defaults.f1, ge=100.0, le=200.0)
 	s1: str = _Defaults.s1
-	it2: _tpl_ii = _field(default_factory=_default_it2_f)
-	f2: float = _Defaults.f2
+	it2: _tpl_ii = _pydField(default_factory=_default_it2_f)
+	f2: float = _pydField(default=_Defaults.f2, ge=200.0, le=300.0)
 	s2: str = _Defaults.s2
+
+	_val_it0 = _pyd_val_it('it0', i=0)
+	_val_it1 = _pyd_val_it('it1', i=1)
+	_val_it2 = _pyd_val_it('it2', i=2)
+
+	_val_s0 = _pyd_val_s('s0', i=0)
+	_val_s1 = _pyd_val_s('s1', i=1)
+	_val_s2 = _pyd_val_s('s2', i=2)
 
 
 # noinspection PyBroadException
 try:
-	@_pyd_dataclass(order=True, unsafe_hash=True, frozen=False, slots=True, )
+	# noinspection DuplicatedCode,PyArgumentList,SpellCheckingInspection
+	@_pyd_dataclass(
+		config=_pydConfig, order=True, unsafe_hash=True, frozen=False, slots=True,
+	)
 	class PydanticDataClassSlots:
-		i: int = _Defaults.i
-		it0: _tpl_ii = _field(default_factory=_default_it0_f)
-		f0: float = _Defaults.f0
+		i: int = _pydField(default=_Defaults.i, gt=-1)
+		it0: _tpl_ii = _pydField(default_factory=_default_it0_f)
+		f0: float = _pydField(default=_Defaults.f0, ge=0.0, le=100.0)
 		s0: str = _Defaults.s0
-		it1: _tpl_ii = _field(default_factory=_default_it1_f)
-		f1: float = _Defaults.f1
+		it1: _tpl_ii = _pydField(default_factory=_default_it1_f)
+		f1: float = _pydField(default=_Defaults.f1, ge=100.0, le=200.0)
 		s1: str = _Defaults.s1
-		it2: _tpl_ii = _field(default_factory=_default_it2_f)
-		f2: float = _Defaults.f2
+		it2: _tpl_ii = _pydField(default_factory=_default_it2_f)
+		f2: float = _pydField(default=_Defaults.f2, ge=200.0, le=300.0)
 		s2: str = _Defaults.s2
+
+		_val_it0 = _pyd_val_it('it0', i=0)
+		_val_it1 = _pyd_val_it('it1', i=1)
+		_val_it2 = _pyd_val_it('it2', i=2)
+
+		_val_s0 = _pyd_val_s('s0', i=0)
+		_val_s1 = _pyd_val_s('s1', i=1)
+		_val_s2 = _pyd_val_s('s2', i=2)
 except Exception:
 	# noinspection DuplicatedCode,SpellCheckingInspection
-	class PydanticDataClassSlots(PydanticDataClass):
-		__slots__ = _slots
+	PydanticDataClassSlots = PydanticDataClass
