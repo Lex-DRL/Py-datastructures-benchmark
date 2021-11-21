@@ -19,6 +19,8 @@ import string as _string
 from types import SimpleNamespace
 
 import attr as _attr
+from pydantic import BaseModel as _pydBaseModel
+from pydantic.dataclasses import dataclass as _pyd_dataclass
 
 
 _tpl_ii = _Tuple[int, int]
@@ -471,4 +473,56 @@ class AttrClassSlots:
 	s2: str = _attr.ib(_Defaults.s2, validator=_val_s2, )
 
 
-# --------------------------------- pydantic ---------------------------------
+# ---------------------------- pydantic BaseModel ----------------------------
+
+
+# noinspection DuplicatedCode,SpellCheckingInspection
+class PydanticBase(_pydBaseModel):
+	i: int = _Defaults.i
+	it0: _tpl_ii = _Defaults.it0
+	f0: float = _Defaults.f0
+	s0: str = _Defaults.s0
+	it1: _tpl_ii = _Defaults.it1
+	f1: float = _Defaults.f1
+	s1: str = _Defaults.s1
+	it2: _tpl_ii = _Defaults.it2
+	f2: float = _Defaults.f2
+	s2: str = _Defaults.s2
+
+
+# ---------------------------- pydantic dataclass ----------------------------
+
+
+# noinspection DuplicatedCode,SpellCheckingInspection
+@_pyd_dataclass(order=True, unsafe_hash=True, frozen=False, )
+class PydanticDataClass:
+	i: int = _Defaults.i
+	it0: _tpl_ii = _field(default_factory=_default_it0_f)
+	f0: float = _Defaults.f0
+	s0: str = _Defaults.s0
+	it1: _tpl_ii = _field(default_factory=_default_it1_f)
+	f1: float = _Defaults.f1
+	s1: str = _Defaults.s1
+	it2: _tpl_ii = _field(default_factory=_default_it2_f)
+	f2: float = _Defaults.f2
+	s2: str = _Defaults.s2
+
+
+# noinspection PyBroadException
+try:
+	@_pyd_dataclass(order=True, unsafe_hash=True, frozen=False, slots=True, )
+	class PydanticDataClassSlots:
+		i: int = _Defaults.i
+		it0: _tpl_ii = _field(default_factory=_default_it0_f)
+		f0: float = _Defaults.f0
+		s0: str = _Defaults.s0
+		it1: _tpl_ii = _field(default_factory=_default_it1_f)
+		f1: float = _Defaults.f1
+		s1: str = _Defaults.s1
+		it2: _tpl_ii = _field(default_factory=_default_it2_f)
+		f2: float = _Defaults.f2
+		s2: str = _Defaults.s2
+except Exception:
+	# noinspection DuplicatedCode,SpellCheckingInspection
+	class PydanticDataClassSlots(PydanticDataClass):
+		__slots__ = _slots
