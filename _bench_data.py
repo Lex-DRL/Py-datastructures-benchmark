@@ -12,7 +12,6 @@ from typing import (
 	TypeVar as _TypeVar,
 )
 
-from collections import OrderedDict
 from functools import partial as _partial
 from random import choice as _choice
 from string import ascii_letters as _letters
@@ -23,7 +22,7 @@ from _bench_types import *
 _random_char_f = _partial(_choice, tuple(_letters))
 
 
-def _data_values_iterator(n=1_000_000, min_str_len=35, ):
+def _data_values_iterator(n=10_000_000, min_str_len=35, ):
 	n = max(int(n), 1)
 	max_padded_number_len = max(
 		2,  # even with single-digit number, it will be 2 wit at least 1 char
@@ -52,7 +51,7 @@ def _data_values_iterator(n=1_000_000, min_str_len=35, ):
 	return map(single_item_values, range(1, n + 1))
 
 
-def _data_dicts_iterator(n=1_000_000, min_str_len=35, ):
+def _data_dicts_iterator(n=10_000_000, min_str_len=35, ):
 	def single_item_dict(values_tuple: tuple) -> _Dict[str, _Any]:
 		i, it0, f0, s0, it1, f1, s1, it2, f2, s2 = values_tuple
 		return OrderedDict(
@@ -69,7 +68,7 @@ _T = _TypeVar('T')
 
 
 def data_generator(
-	container: _Type[_T], n=1_000_000, min_str_len=35, as_kwargs=True,
+	container: _Type[_T], n=10_000_000, min_str_len=35, as_kwargs=True,
 ) -> _Generator[_T, _Any, None]:
 	if as_kwargs:
 		return (
@@ -82,11 +81,9 @@ def data_generator(
 
 if __name__ == '__main__':
 	# noinspection DuplicatedCode
-	def __test():
+	def __test(n=69):
 		from pprint import pprint as pp
 
-		n = 69
-		
 		pp(tuple(data_generator(tuple, n, as_kwargs=False)))
 		pp(tuple(data_generator(list, n, as_kwargs=False)))
 		pp(tuple(data_generator(set, n, as_kwargs=False)))
@@ -120,4 +117,6 @@ if __name__ == '__main__':
 		pp(tuple(data_generator(PydanticDataClass, n)))
 		pp(tuple(data_generator(PydanticDataClassSlots, n)))
 
-	__test()
+	keyboard_interrupt_catch_and_exit(
+		__test
+	)

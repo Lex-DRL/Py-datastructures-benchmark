@@ -7,18 +7,25 @@ __author__ = 'Lex Darlog (DRL)'
 from typing import (
 	Any as _Any,
 	AnyStr as _AnyStr,
+	Callable as _C,
 	Dict as _Dict,
 	Tuple as _Tuple,
+	Type as _Type,
 	NamedTuple as _NamedTuple,
+	Union as _U,
 )
 
-from collections import namedtuple as _namedtuple
+from collections import (
+	namedtuple as _namedtuple,
+	OrderedDict,  # (sic!) exported
+)
 from dataclasses import (
 	dataclass as _dataclass,
 	field as _field,
 )
 from itertools import chain as _chain
 import string as _string
+import re as _re
 from types import SimpleNamespace  # (sic!) exported
 
 import attr as _attr
@@ -37,6 +44,12 @@ _attr_names = (
 	'it0', 'f0', 's0',
 	'it1', 'f1', 's1',
 	'it2', 'f2', 's2',
+)
+_attr_types = OrderedDict(
+	i=int,
+	it0=_tpl_ii, f0=float, s0=str,
+	it1=_tpl_ii, f1=float, s1=str,
+	it2=_tpl_ii, f2=float, s2=str,
 )
 # print(', '.join(_attr_names))
 _slots = tuple(_chain(_attr_names, [
@@ -84,19 +97,82 @@ def _default_it2_f() -> _tpl_ii:
 def _instance_repr(self):
 	return "{cls_nm}({args})".format(
 		cls_nm=self.__class__.__name__,
-		args=', '.join(f'{nm}={val}' for nm, val in (
-			("i", self.i),
-			("it0", self.it0),
-			("f0", self.f0),
-			("s0", self.s0),
-			("it1", self.it1),
-			("f1", self.f1),
-			("s1", self.s1),
-			("it2", self.it2),
-			("f2", self.f2),
-			("s2", self.s2),
+		args=', '.join(f'{nm}={val}' for nm, val in zip(
+			_attr_names,
+			(
+				self.i,
+				self.it0, self.f0, self.s0,
+				self.it1, self.f1, self.s1,
+				self.it2, self.f2, self.s2,
+			)
 		))
 	)
+
+
+_re_py_obj_name_match = _re.compile('[a-zA-Z_][a-zA-Z_0-9]*$').match
+
+
+def _type_name(tp: _Type):
+	try:
+		type_name = tp.__name__
+	except AttributeError:
+		type_name = str(tp)
+	split_type = [x.strip() for x in type_name.split('.')]
+
+	# in case of complex types, keep everything starting from a part
+	# containing anything other than a proper python-object name:
+	last_type_parts = split_type[-1:]
+	for i, type_part in enumerate(split_type):
+		if not _re_py_obj_name_match(type_part):
+			last_type_parts = split_type[i:]
+			break
+	return '.'.join(last_type_parts)
+
+
+def _format_item(field_name: str = 'it0', sep: str = ': '):
+	# field_name: str = 'i'
+	attr_type = _attr_types[field_name]
+	return f"{field_name}{sep}{_type_name(attr_type)}"
+
+
+def _format_items_list(indent: _U[str, int, float] = '\t'):
+	# indent = 0
+	if isinstance(indent, float):
+		indent = int(indent)
+	if not isinstance(indent, (str, int)):
+		# noinspection PyBroadException
+		try:
+			indent = int(indent)
+		except Exception:
+			indent = str(indent)
+	if isinstance(indent, int):
+		indent = '\t' * indent
+	assert isinstance(indent, str)
+
+	pairs_iter = iter(_attr_names)
+	i_line = (next(pairs_iter), )
+	triplets = zip(pairs_iter, pairs_iter, pairs_iter)
+	lines = (
+		', '.join(map(_format_item, line_items))
+		for line_items in _chain([i_line], triplets)
+	)
+	res = f',\n{indent}'.join(lines)
+	return f'{indent}{res}'
+
+
+def keyboard_interrupt_catch_and_exit(f: _C, *f_args, **f_kwargs):
+	try:
+		return f(*f_args, **f_kwargs)
+	except KeyboardInterrupt as e:
+		# noinspection PyBroadException
+		try:
+			err_msg = str(e.args[0])
+		except Exception:
+			err_msg = _type_name(type(e))
+		if not err_msg:
+			err_msg = 'KeyboardInterrupt'
+		print(err_msg)
+		exit()
 
 
 # --------------------------- SimpleNamespaceSlots ---------------------------
