@@ -7,6 +7,9 @@ __author__ = 'Lex Darlog (DRL)'
 from typing import (
 	Any as _Any,
 	Dict as _Dict,
+	Tuple as _Tuple,
+	Type as _Type,
+	TypeVar as _TypeVar,
 )
 
 from collections import OrderedDict
@@ -57,38 +60,51 @@ def data_dicts_iterator(n=1_000_000, min_str_len=35):
 	return map(single_item_dict, data_values_iterator(n=n, min_str_len=min_str_len))
 
 
+# noinspection PyTypeHints,PyShadowingBuiltins
+_T = _TypeVar('T')
+
+
+def data_tuple(
+	container: _Type[_T], n=1_000_000, min_str_len=35
+) -> _Tuple[_T, ...]:
+	return tuple(
+		container(**x) for x in data_dicts_iterator(n=n, min_str_len=min_str_len)
+	)
+
+
 if __name__ == '__main__':
 	from _bench_types import *
 
+	# noinspection DuplicatedCode
 	def __test():
 		from pprint import pprint as pp
 
 		n = 101
 		
-		pp([SimpleNamespace(**x) for x in data_dicts_iterator(n)])
-		pp([SimpleNamespaceSlots(**x) for x in data_dicts_iterator(n)])
-		pp([SimpleNamespaceSlotsSet(**x) for x in data_dicts_iterator(n)])
-		pp([SimpleNamespaceSlotsFrozen(**x) for x in data_dicts_iterator(n)])
+		pp(data_tuple(SimpleNamespace, n))
+		pp(data_tuple(SimpleNamespaceSlots, n))
+		pp(data_tuple(SimpleNamespaceSlotsSet, n))
+		pp(data_tuple(SimpleNamespaceSlotsFrozen, n))
 
-		pp([namedtuple(**x) for x in data_dicts_iterator(n)])
-		pp([NamedTuple(**x) for x in data_dicts_iterator(n)])
+		pp(data_tuple(namedtuple, n))
+		pp(data_tuple(NamedTuple, n))
 
-		pp([Class(**x) for x in data_dicts_iterator(n)])
-		pp([ClassSlots(**x) for x in data_dicts_iterator(n)])
-		pp([ClassSlotsSet(**x) for x in data_dicts_iterator(n)])
-		pp([DataClassSlotsFrozen(**x) for x in data_dicts_iterator(n)])
+		pp(data_tuple(Class, n))
+		pp(data_tuple(ClassSlots, n))
+		pp(data_tuple(ClassSlotsSet, n))
+		pp(data_tuple(ClassSlotsFrozen, n))
 
-		pp([DataClass(**x) for x in data_dicts_iterator(n)])
-		pp([DataClassSlots(**x) for x in data_dicts_iterator(n)])
-		pp([DataClassSlotsSet(**x) for x in data_dicts_iterator(n)])
-		pp([DataClassSlotsFrozen(**x) for x in data_dicts_iterator(n)])
+		pp(data_tuple(DataClass, n))
+		pp(data_tuple(DataClassSlots, n))
+		pp(data_tuple(DataClassSlotsSet, n))
+		pp(data_tuple(DataClassSlotsFrozen, n))
 
-		pp([AttrClass(**x) for x in data_dicts_iterator(n)])
-		pp([AttrClassSlots(**x) for x in data_dicts_iterator(n)])
+		pp(data_tuple(AttrClass, n))
+		pp(data_tuple(AttrClassSlots, n))
 
-		pp([PydanticBase(**x) for x in data_dicts_iterator(n)])
+		pp(data_tuple(PydanticBase, n))
 
-		pp([PydanticDataClass(**x) for x in data_dicts_iterator(n)])
-		pp([PydanticDataClassSlots(**x) for x in data_dicts_iterator(n)])
+		pp(data_tuple(PydanticDataClass, n))
+		pp(data_tuple(PydanticDataClassSlots, n))
 
 	__test()
