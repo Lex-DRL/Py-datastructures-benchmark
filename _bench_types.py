@@ -19,7 +19,7 @@ from dataclasses import (
 )
 from itertools import chain as _chain
 import string as _string
-from types import SimpleNamespace
+from types import SimpleNamespace  # (sic!) exported
 
 import attr as _attr
 from pydantic import (

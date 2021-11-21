@@ -7,21 +7,23 @@ __author__ = 'Lex Darlog (DRL)'
 from typing import (
 	Any as _Any,
 	Dict as _Dict,
-	Tuple as _Tuple,
+	Generator as _Generator,
 	Type as _Type,
 	TypeVar as _TypeVar,
 )
 
 from collections import OrderedDict
-from functools import partial
+from functools import partial as _partial
 from random import choice as _choice
 from string import ascii_letters as _letters
 
+from _bench_types import *
 
-_random_char_f = partial(_choice, tuple(_letters))
+
+_random_char_f = _partial(_choice, tuple(_letters))
 
 
-def data_values_iterator(n=1_000_000, min_str_len=35):
+def _data_values_iterator(n=1_000_000, min_str_len=35, ):
 	n = max(n, 1)
 	max_len = len(str(n)) + 1  # always have at least one non-numeric char
 	max_len = max(max_len, min_str_len)
@@ -48,7 +50,7 @@ def data_values_iterator(n=1_000_000, min_str_len=35):
 	return map(single_item_values, range(n))
 
 
-def data_dicts_iterator(n=1_000_000, min_str_len=35):
+def _data_dicts_iterator(n=1_000_000, min_str_len=35, ):
 	def single_item_dict(values_tuple: tuple) -> _Dict[str, _Any]:
 		i, it0, f0, s0, it1, f1, s1, it2, f2, s2 = values_tuple
 		return OrderedDict(
@@ -57,54 +59,63 @@ def data_dicts_iterator(n=1_000_000, min_str_len=35):
 			it1=it1, f1=f1, s1=s1,
 			it2=it2, f2=f2, s2=s2,
 		)
-	return map(single_item_dict, data_values_iterator(n=n, min_str_len=min_str_len))
+	return map(single_item_dict, _data_values_iterator(n=n, min_str_len=min_str_len))
 
 
 # noinspection PyTypeHints,PyShadowingBuiltins
 _T = _TypeVar('T')
 
 
-def data_tuple(
-	container: _Type[_T], n=1_000_000, min_str_len=35
-) -> _Tuple[_T, ...]:
-	return tuple(
-		container(**x) for x in data_dicts_iterator(n=n, min_str_len=min_str_len)
+def data_generator(
+	container: _Type[_T], n=1_000_000, min_str_len=35, as_kwargs=True,
+) -> _Generator[_T, _Any, None]:
+	if as_kwargs:
+		return (
+			container(**kws) for kws in _data_dicts_iterator(n=n, min_str_len=min_str_len)
+		)
+	return (
+		container(args) for args in _data_values_iterator(n=n, min_str_len=min_str_len)
 	)
 
 
 if __name__ == '__main__':
-	from _bench_types import *
-
 	# noinspection DuplicatedCode
 	def __test():
 		from pprint import pprint as pp
 
-		n = 101
+		n = 69
 		
-		pp(data_tuple(SimpleNamespace, n))
-		pp(data_tuple(SimpleNamespaceSlots, n))
-		pp(data_tuple(SimpleNamespaceSlotsSet, n))
-		pp(data_tuple(SimpleNamespaceSlotsFrozen, n))
+		pp(tuple(data_generator(tuple, n, as_kwargs=False)))
+		pp(tuple(data_generator(list, n, as_kwargs=False)))
+		pp(tuple(data_generator(set, n, as_kwargs=False)))
+		pp(tuple(data_generator(frozenset, n, as_kwargs=False)))
+		pp(tuple(data_generator(dict, n)))
+		pp(tuple(data_generator(OrderedDict, n)))
 
-		pp(data_tuple(namedtuple, n))
-		pp(data_tuple(NamedTuple, n))
+		pp(tuple(data_generator(SimpleNamespace, n)))
+		pp(tuple(data_generator(SimpleNamespaceSlots, n)))
+		pp(tuple(data_generator(SimpleNamespaceSlotsSet, n)))
+		pp(tuple(data_generator(SimpleNamespaceSlotsFrozen, n)))
 
-		pp(data_tuple(Class, n))
-		pp(data_tuple(ClassSlots, n))
-		pp(data_tuple(ClassSlotsSet, n))
-		pp(data_tuple(ClassSlotsFrozen, n))
+		pp(tuple(data_generator(namedtuple, n)))
+		pp(tuple(data_generator(NamedTuple, n)))
 
-		pp(data_tuple(DataClass, n))
-		pp(data_tuple(DataClassSlots, n))
-		pp(data_tuple(DataClassSlotsSet, n))
-		pp(data_tuple(DataClassSlotsFrozen, n))
+		pp(tuple(data_generator(Class, n)))
+		pp(tuple(data_generator(ClassSlots, n)))
+		pp(tuple(data_generator(ClassSlotsSet, n)))
+		pp(tuple(data_generator(ClassSlotsFrozen, n)))
 
-		pp(data_tuple(AttrClass, n))
-		pp(data_tuple(AttrClassSlots, n))
+		pp(tuple(data_generator(DataClass, n)))
+		pp(tuple(data_generator(DataClassSlots, n)))
+		pp(tuple(data_generator(DataClassSlotsSet, n)))
+		pp(tuple(data_generator(DataClassSlotsFrozen, n)))
 
-		pp(data_tuple(PydanticBase, n))
+		pp(tuple(data_generator(AttrClass, n)))
+		pp(tuple(data_generator(AttrClassSlots, n)))
 
-		pp(data_tuple(PydanticDataClass, n))
-		pp(data_tuple(PydanticDataClassSlots, n))
+		pp(tuple(data_generator(PydanticBase, n)))
+
+		pp(tuple(data_generator(PydanticDataClass, n)))
+		pp(tuple(data_generator(PydanticDataClassSlots, n)))
 
 	__test()
