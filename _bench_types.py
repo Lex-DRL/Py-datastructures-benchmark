@@ -40,10 +40,10 @@ _attr_names = (
 )
 # print(', '.join(_attr_names))
 _slots = tuple(_chain(_attr_names, [
-	'__eq__', '__ne__',
+	# '__eq__', '__ne__',
 	# '__hash__',
 	# '__lt__', '__le__', '__gt__', '__ge__',
-	'__repr__',
+	# '__repr__',
 	# '__weakref__',
 ]))
 _slots_set = set(_slots)
@@ -81,6 +81,24 @@ def _default_it2_f() -> _tpl_ii:
 	return -69, 2
 
 
+def _instance_repr(self):
+	return "{cls_nm}({args})".format(
+		cls_nm=self.__class__.__name__,
+		args=', '.join(f'{nm}={val}' for nm, val in (
+			("i", self.i),
+			("it0", self.it0),
+			("f0", self.f0),
+			("s0", self.s0),
+			("it1", self.it1),
+			("f1", self.f1),
+			("s1", self.s1),
+			("it2", self.it2),
+			("f2", self.f2),
+			("s2", self.s2),
+		))
+	)
+
+
 # --------------------------- SimpleNamespaceSlots ---------------------------
 
 # slotted SimpleNamespace examples are ridiculous since we basically
@@ -110,6 +128,9 @@ class SimpleNamespaceSlots(SimpleNamespace):
 		self.f2: float = f2
 		self.s2: str = s2
 
+	def __repr__(self):
+		return _instance_repr(self)
+
 
 class SimpleNamespaceSlotsSet(SimpleNamespace):
 	__slots__ = _slots_set
@@ -132,6 +153,9 @@ class SimpleNamespaceSlotsSet(SimpleNamespace):
 		self.f2: float = f2
 		self.s2: str = s2
 
+	def __repr__(self):
+		return _instance_repr(self)
+
 
 class SimpleNamespaceSlotsFrozen(SimpleNamespace):
 	__slots__ = _slots_frozen
@@ -153,6 +177,9 @@ class SimpleNamespaceSlotsFrozen(SimpleNamespace):
 		self.it2: _tpl_ii = it2
 		self.f2: float = f2
 		self.s2: str = s2
+
+	def __repr__(self):
+		return _instance_repr(self)
 
 
 # -------------------------------- NamedTuple --------------------------------
@@ -195,6 +222,9 @@ class Class:
 		self.f2: float = f2
 		self.s2: str = s2
 
+	def __repr__(self):
+		return _instance_repr(self)
+
 
 class ClassSlots:
 	__slots__ = _slots
@@ -215,6 +245,9 @@ class ClassSlots:
 		self.it2: _tpl_ii = it2
 		self.f2: float = f2
 		self.s2: str = s2
+
+	def __repr__(self):
+		return _instance_repr(self)
 
 
 class ClassSlotsSet:
@@ -237,6 +270,9 @@ class ClassSlotsSet:
 		self.f2: float = f2
 		self.s2: str = s2
 
+	def __repr__(self):
+		return _instance_repr(self)
+
 
 class ClassSlotsFrozen:
 	__slots__ = _slots_frozen
@@ -257,6 +293,9 @@ class ClassSlotsFrozen:
 		self.it2: _tpl_ii = it2
 		self.f2: float = f2
 		self.s2: str = s2
+
+	def __repr__(self):
+		return _instance_repr(self)
 
 
 # --------------------------------- DataClass ---------------------------------
