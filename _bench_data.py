@@ -7,9 +7,11 @@ __author__ = 'Lex Darlog (DRL)'
 from typing import (
 	Any as _Any,
 	Dict as _Dict,
+	Iterator as _Iterator,
 	Generator as _Generator,
 	Type as _Type,
 	TypeVar as _TypeVar,
+	Union as _U,
 )
 
 from functools import partial as _partial
@@ -51,8 +53,11 @@ def _data_values_iterator(n=10_000_000, min_str_len=35, ):
 	return map(single_item_values, range(1, n + 1))
 
 
+_t_item_dict = _Dict[str, _Any]
+
+
 def _data_dicts_iterator(n=10_000_000, min_str_len=35, ):
-	def single_item_dict(values_tuple: tuple) -> _Dict[str, _Any]:
+	def single_item_dict(values_tuple: tuple) -> _t_item_dict:
 		i, it0, f0, s0, it1, f1, s1, it2, f2, s2 = values_tuple
 		return OrderedDict(
 			i=i,
@@ -68,8 +73,12 @@ _T = _TypeVar('T')
 
 
 def data_generator(
-	container: _Type[_T], n=10_000_000, min_str_len=35, as_kwargs=True,
-) -> _Generator[_T, _Any, None]:
+	container: _Type[_T] = None, n=10_000_000, min_str_len=35, as_kwargs=True,
+) -> _Iterator[_U[_T, _t_item_dict, tuple]]:
+	if container is None:
+		if as_kwargs:
+			return _data_dicts_iterator(n=n, min_str_len=min_str_len)
+		return _data_values_iterator(n=n, min_str_len=min_str_len)
 	if as_kwargs:
 		return (
 			container(**kws) for kws in _data_dicts_iterator(n=n, min_str_len=min_str_len)

@@ -13,11 +13,14 @@ if _module_dir_str not in _sys_path:
 	_sys_path.append(_module_dir)
 
 
+# noinspection PyPep8Naming
 from typing import (
 	Any as _Any,
 	Dict as _Dict,
 	Generator as _Generator,
 	Iterable as _Iterable,
+	NamedTuple as _NamedTuple,
+	Optional as _O,
 	Type as _Type,
 	TypeVar as _TypeVar,
 	Union as _U,
@@ -27,7 +30,18 @@ _T = _TypeVar('T')
 # noinspection PyTypeHints
 _if = _TypeVar('IntFloat', int, float)
 
-from _bench_types import _attr_names, _type_name, _format_items_list
+import time as _time
+from dataclasses import dataclass as _dataclass
+
+from pympler.asizeof import asizeof as _asizeof
+
+from _bench_types import (
+	_attr_names,
+	_type_name,
+	_format_items_list,
+	_read_attribs, _read_attribs_from_dict, _read_attribs_from_seq,
+	_set_attribs, _set_attribs_for_dict, _set_attribs_for_seq,
+)
 from _bench_data import *
 
 # optional: progressbar
@@ -107,29 +121,106 @@ def format_thousands(number: _U[_if, str], spacer="_"):
 	return sign + spacer.join(reversed(reversed_pieces))
 
 
+@_dataclass
+class TestResult:
+	container: _Type
+	n: int
+	size_bytes: _O[int] = None
+	create_time: float = 0.0
+	attr_access_time: _O[float] = None
+	attr_set_time: _O[float] = None
+
+	@staticmethod
+	def format_result_value(name: str, value, indent='\t'):
+		if name == 'n':
+			return f'{indent}{name}: {format_thousands(value)}'
+		if name == 'size_bytes':
+			return f'{indent}{name}: {human_bytes(value)}'
+		if name.endswith('_time'):
+			return f'{indent}{name}: {value:.3f} seconds'
+		return f'{indent}{name}: {value}'
+
+	def formatted_summary(self):
+		summ_values_str = '\n'.join(
+			self.format_result_value(k, v) for k, v in self.__dict__.items()
+			if v is not None and k != 'container'
+		)
+		return f'{_type_name(self.container)}:\n{summ_values_str}'
+
+
 def test(
-	container: _Type[_T] = dict, n=10_000_000, min_str_len=35, as_kwargs=True,
-	long_greeting=False, print_attrs_list=False,
+	container: _Type = dict, n=10_000_000, min_str_len=35, as_kwargs=True,
+	test_ram=True, test_read=True, test_set=True, leave_progress=False,
+	long_greeting=False, print_attrs_list=False, print_summary=True,
 ):
+	type_name = _type_name(container)
 	attrs_list_str = f': {{\n{_format_items_list(1)}\n}}' if print_attrs_list else ''
 	if long_greeting:
 		greeting = (
-			f"Building a tuple of {format_thousands(n)} <{_type_name(container)}> "
+			f"\nBuilding a tuple of {format_thousands(n)} unique <{type_name}> "
 			f"instances, each with {len(_attr_names)} values{attrs_list_str}..."
 		)
 	else:
 		greeting = (
-			f"Tuple of {format_thousands(n)} <{_type_name(container)}> "
+			f"\nTuple of {format_thousands(n)} unique <{type_name}> "
 			f"items{attrs_list_str}..."
 		)
 	print(greeting)
+	res = TestResult(container, n)
 
 	data_gen = data_generator(
 		container, n=n, min_str_len=min_str_len, as_kwargs=as_kwargs
 	)
+	start_time = _time.process_time()
 	big_tuple = tuple(
-		_tqdm(data_gen, desc='', total=n, unit=' items')
+		_tqdm(data_gen, desc='', total=n, unit=' items', )
 	)
+	res.create_time = _time.process_time() - start_time
+
+	if test_ram:
+		warning_msg = ' (this might take long)' if n > 100_000 else ''
+		print(f"Measuring size of the entire tuple in RAM{warning_msg}...")
+		res.size_bytes = _asizeof(big_tuple)
+
+	def measure_iteration_over_items(items: _Iterable):
+		start_t = _time.process_time()
+		for instance in _tqdm(
+			items,
+			desc='', total=n, leave=leave_progress, unit=' items',
+		):
+			pass
+		return _time.process_time() - start_t
+
+	attr_access_f = _read_attribs
+	attr_set_f = _set_attribs
+	if as_kwargs:
+		if isinstance(container, dict):
+			attr_access_f = _read_attribs_from_dict
+			attr_set_f = _set_attribs_for_dict
+	else:
+		attr_access_f = _read_attribs_from_seq
+		attr_set_f = _set_attribs_for_seq
+
+	if test_read:
+		print(f"Test reading values from <{type_name}> instances...")
+		res.attr_access_time = measure_iteration_over_items(
+			map(attr_access_f, big_tuple)
+		)
+
+	if test_set:
+		# use the same instance-values-dict to set attribs for ALL the instances:
+		test_values_dict: dict = next(data_generator(
+			None, n=1, min_str_len=min_str_len, as_kwargs=True
+		))
+		test_values_iter = (test_values_dict for _ in range(n))
+		print(f"Test setting values for <{type_name}> instances...")
+		res.attr_set_time = measure_iteration_over_items(
+			map(attr_set_f, big_tuple, test_values_iter)
+		)
+
+	if print_summary:
+		print(f'\n{res.formatted_summary()}')
+	return res
 
 
 if __name__ == '__main__':

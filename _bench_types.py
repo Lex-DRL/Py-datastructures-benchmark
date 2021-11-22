@@ -4,6 +4,7 @@
 
 __author__ = 'Lex Darlog (DRL)'
 
+# noinspection PyPep8Naming
 from typing import (
 	Any as _Any,
 	AnyStr as _AnyStr,
@@ -94,17 +95,77 @@ def _default_it2_f() -> _tpl_ii:
 	return -69, 2
 
 
+def _read_attribs(self):
+	return (
+		self.i,
+		self.it0, self.f0, self.s0,
+		self.it1, self.f1, self.s1,
+		self.it2, self.f2, self.s2,
+	)
+
+
+def _read_attribs_from_dict(self):
+	return (
+		self["i"],
+		self["it0"], self["f0"], self["s0"],
+		self["it1"], self["f1"], self["s1"],
+		self["it2"], self["f2"], self["s2"],
+	)
+
+
+def _read_attribs_from_seq(self):
+	return (
+		self[0],
+		self[1], self[2], self[3],
+		self[4], self[5], self[6],
+		self[7], self[8], self[9],
+	)
+
+
+def _set_attribs(self, values: dict):
+	self.i = values["i"]
+	self.it0 = values["it0"]
+	self.f0 = values["f0"]
+	self.s0 = values["s0"]
+	self.it1 = values["it1"]
+	self.f1 = values["f1"]
+	self.s1 = values["s1"]
+	self.it2 = values["it2"]
+	self.f2 = values["f2"]
+	self.s2 = values["s2"]
+
+
+def _set_attribs_for_dict(self: dict, values: dict):
+	self["i"] = values["i"]
+	self["it0"] = values["it0"]
+	self["f0"] = values["f0"]
+	self["s0"] = values["s0"]
+	self["it1"] = values["it1"]
+	self["f1"] = values["f1"]
+	self["s1"] = values["s1"]
+	self["it2"] = values["it2"]
+	self["f2"] = values["f2"]
+	self["s2"] = values["s2"]
+
+
+def _set_attribs_for_seq(self, values: dict):
+	self[0] = values["i"]
+	self[1] = values["it0"]
+	self[2] = values["f0"]
+	self[3] = values["s0"]
+	self[4] = values["it1"]
+	self[5] = values["f1"]
+	self[6] = values["s1"]
+	self[7] = values["it2"]
+	self[8] = values["f2"]
+	self[9] = values["s2"]
+
+
 def _instance_repr(self):
 	return "{cls_nm}({args})".format(
 		cls_nm=self.__class__.__name__,
 		args=', '.join(f'{nm}={val}' for nm, val in zip(
-			_attr_names,
-			(
-				self.i,
-				self.it0, self.f0, self.s0,
-				self.it1, self.f1, self.s1,
-				self.it2, self.f2, self.s2,
-			)
+			_attr_names, _read_attribs(self)
 		))
 	)
 
