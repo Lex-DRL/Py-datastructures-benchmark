@@ -43,10 +43,10 @@ def format_options(**opts):
 
 
 options_per_type: Dict[str, Dict] = dict(
-	tuple=dict(as_kwargs=False, test_set=False),
-	list=dict(as_kwargs=False),
-	set=dict(as_kwargs=False, test_read=False, test_set=False),
-	frozenset=dict(as_kwargs=False, test_read=False, test_set=False),
+	tuple=dict(),
+	list=dict(),
+	set=dict(),
+	frozenset=dict(),
 	dict=dict(),
 	OrderedDict=dict(),
 	SimpleNamespace=dict(),

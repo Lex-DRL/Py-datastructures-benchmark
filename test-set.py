@@ -13,4 +13,4 @@ if _module_dir_str not in _sys_path:
 from bench_data_container import *
 
 
-keyboard_interrupt_catch_and_exit(test_from_cmd, set, as_kwargs=False, test_read=False, test_set=False)
+keyboard_interrupt_catch_and_exit(test_from_cmd, set)
