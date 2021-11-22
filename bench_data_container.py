@@ -152,6 +152,7 @@ def test(
 	container: _Type = dict, n=10_000_000, min_str_len=35, as_kwargs=True,
 	test_ram=True, test_read=True, test_set=True, leave_progress=False,
 	long_greeting=False, print_attrs_list=False, print_summary=True,
+	**extra_kwargs_swallower
 ):
 	type_name = _type_name(container)
 	attrs_list_str = f': {{\n{_format_items_list(1)}\n}}' if print_attrs_list else ''
@@ -194,7 +195,7 @@ def test(
 	attr_access_f = _read_attribs
 	attr_set_f = _set_attribs
 	if as_kwargs:
-		if isinstance(container, dict):
+		if issubclass(container, dict):
 			attr_access_f = _read_attribs_from_dict
 			attr_set_f = _set_attribs_for_dict
 	else:
@@ -221,6 +222,64 @@ def test(
 	if print_summary:
 		print(f'\n{res.formatted_summary()}')
 	return res
+
+
+def test_from_cmd(container: type, **forced_kwargs):
+	import sys
+	from distutils.util import strtobool as bbb
+
+	if not isinstance(container, type):
+		raise TypeError(f"Unknown container type: {container}")
+
+	def to_int(val):
+		if isinstance(val, str):
+			val = val.strip()
+		if not val:
+			return 0
+		return int(val)
+
+	def to_bool(val):
+		if not val:
+			return False
+		if isinstance(val, str):
+			val = bbb(val)
+		return bool(val)
+
+	args_converters = dict(
+		n=to_int, min_str_len=to_int, as_kwargs=to_bool,
+		test_ram=to_bool, test_read=to_bool, test_set=to_bool, leave_progress=to_bool,
+		long_greeting=to_bool, print_attrs_list=to_bool, print_summary=to_bool,
+	)
+
+	kwargs = dict()
+	args = iter(sys.argv[1:])
+	for arg in args:
+		val: _O[str] = None
+		assert isinstance(arg, str)
+		arg = arg.lstrip('/\\-')
+		if '=' in arg:
+			arg_split = [x.strip() for x in arg.split('=')]
+			if len(arg_split) > 1:
+				arg, val, *_ = arg_split
+				val = val.strip()
+				if not val:
+					val = None
+			else:
+				arg = arg_split[0]
+
+		if arg in args_converters:
+			converter = args_converters[arg]
+			# noinspection PyBroadException
+			while not val:
+				try:
+					val = next(args)
+				except StopIteration:
+					break
+				val = val.lstrip('=')
+			if arg not in forced_kwargs and val:
+				kwargs[arg] = converter(val)
+
+	test(container, **forced_kwargs, **kwargs)
 
 
 if __name__ == '__main__':
