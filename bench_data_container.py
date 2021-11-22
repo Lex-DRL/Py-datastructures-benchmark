@@ -178,16 +178,29 @@ def test(
 			f"items{attrs_list_str}..."
 		)
 	print(greeting)
-	res = TestResult(container, n)
+	print("Pre-Generating data...")
 
 	data_gen = data_generator(
-		container, n=n, min_str_len=min_str_len, as_kwargs=as_kwargs
+		None, n=n, min_str_len=min_str_len, as_kwargs=as_kwargs
 	)
-	start_time = _time.process_time()
-	big_tuple = tuple(
+	prepared_data = tuple(
 		_tqdm(data_gen, desc='', total=n, unit=' items', )
 	)
+
+	print("Passing this data to create the tuple and measure creation time...")
+	if as_kwargs:
+		data_gen = (container(**kw_vals) for kw_vals in prepared_data)
+	else:
+		data_gen = (container(vals) for vals in prepared_data)
+
+	res = TestResult(container, n)
+
+	start_time = _time.process_time()
+	big_tuple = tuple(
+		_tqdm(data_gen, desc='', total=n, leave=leave_progress, unit=' items', )
+	)
 	res.create_time = _time.process_time() - start_time
+	del prepared_data
 
 	if test_ram:
 		warning_msg = ' (this might take long)' if n > 100_000 else ''
