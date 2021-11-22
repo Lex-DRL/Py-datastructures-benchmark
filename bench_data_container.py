@@ -4,8 +4,15 @@
 
 __author__ = 'Lex Darlog (DRL)'
 
-from pathlib import Path as _Path
-from sys import path as _sys_path
+import warnings as _warnings
+
+with _warnings.catch_warnings():
+	# some modules like to raise warnings on import
+	_warnings.simplefilter('ignore')
+
+	from pathlib import Path as _Path
+	from sys import path as _sys_path
+
 # we might need to add the script dir to sys.path before we proceed:
 _module_dir = _Path(__file__).parent
 _module_dir_str = str(_module_dir).replace('\\', '/')
@@ -33,8 +40,6 @@ _if = _TypeVar('IntFloat', int, float)
 import time as _time
 from dataclasses import dataclass as _dataclass
 
-from pympler.asizeof import asizeof as _asizeof
-
 from _bench_types import (
 	_attr_names,
 	_type_name,
@@ -44,18 +49,24 @@ from _bench_types import (
 )
 from _bench_data import *
 
-# optional: progressbar
-try:
-	# noinspection SpellCheckingInspection
-	from tqdm import tqdm as _tqdm
-except ImportError:
-	# noinspection SpellCheckingInspection
-	_tqdm = None
-if not callable(_tqdm):
-	# noinspection SpellCheckingInspection,PyUnusedLocal
-	def _tqdm(iterable: _Iterable[_T] = None, *args, **kwargs):
-		"""Dummy tqdm placeholder."""
-		return iterable
+with _warnings.catch_warnings():
+	# some modules like to raise warnings on import
+	_warnings.simplefilter('ignore')
+
+	from pympler.asizeof import asizeof as _asizeof
+
+	# optional: progressbar
+	try:
+		# noinspection SpellCheckingInspection
+		from tqdm import tqdm as _tqdm
+	except ImportError:
+		# noinspection SpellCheckingInspection
+		_tqdm = None
+	if not callable(_tqdm):
+		# noinspection SpellCheckingInspection,PyUnusedLocal
+		def _tqdm(iterable: _Iterable[_T] = None, *args, **kwargs):
+			"""Dummy tqdm placeholder."""
+			return iterable
 
 
 _byte_kilo_sizes = ('', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi')
@@ -285,5 +296,5 @@ def test_from_cmd(container: type, **forced_kwargs):
 if __name__ == '__main__':
 	keyboard_interrupt_catch_and_exit(
 		test,
-		ClassSlotsFrozen, n=1_000_000, print_attrs_list=False,
+		ClassSlotsFrozen, n=100_000, print_attrs_list=False,
 	)
