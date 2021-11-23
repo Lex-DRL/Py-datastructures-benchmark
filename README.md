@@ -159,9 +159,14 @@ Detailed results are  in attached files *(look at the very end for summary, sort
 [![set attr time](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=1055184344&format=image)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=1055184344&format=interactive)
 [![set attr time (exclude pydantic)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=28732167&format=image)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=28732167&format=interactive)
 
+### Tables
+
 </details>
 
-### 300 K
+<details>
+<summary>Tables</summary>
+
+#### 300 K
 
 |                | RAM | create | read | set |
 | -------------- | --- | ------ | ---- | --- |
@@ -194,7 +199,7 @@ Detailed results are  in attached files *(look at the very end for summary, sort
 | PydanticDataClass[^pyd_dataclass_note] | 88.108% | 100% | 49.713% | 69.506% |
 | PydanticBase      | 69.189% | 94.149% | 100% | 100% |
 
-### 5 M
+#### 5 M
 
 |                | RAM | create | read | set |
 | -------------- | --- | ------ | ---- | --- |
@@ -226,6 +231,8 @@ Detailed results are  in attached files *(look at the very end for summary, sort
 | AttrClassSlots    | 49.189% | 26.652% | 30.367% | 0.313% |
 | PydanticDataClass[^pyd_dataclass_note] | 88.108% | 100%    | 60.937% | 69,901% |
 | PydanticBase      | 69.189% | 93.792% | 100%    | 100% |
+
+</details>
 
 [^set_note]:
 	You can't really read or assign values to set members. Therefore, my code does the next best thing: calls `set.update()` to "set" values and just unpacks set contents as "read".
