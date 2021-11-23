@@ -88,7 +88,7 @@ Another note:
 
 ## Requirements
 
-All the scripts make use of f-strings, so Python 3.6 (I guess, not tested).
+All the scripts make use of f-strings, so minimal Python python version is 3.6 (I guess, not tested).
 
 I ran it on Python `3.7.9`.
 
