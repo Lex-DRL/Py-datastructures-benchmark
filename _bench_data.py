@@ -39,7 +39,7 @@ def data_values_iterator(n=1_000_000, min_str_len=35, ) -> _Iterator[_tpl_values
 		len(str(n)) + 1,  # always have at least one non-numeric char
 		int(min_str_len) - 2,  # 2 chars are taken by '0:'
 	)
-	float_scale = 100.0 / (n + 1)
+	float_scale = 100.0 / (n + 2)
 
 	def generate_str(field_i_str: str, number_str: str, n_prefix_chars: int):
 		str_padding = ''.join(_random_char_f() for _ in range(n_prefix_chars))
@@ -47,7 +47,7 @@ def data_values_iterator(n=1_000_000, min_str_len=35, ) -> _Iterator[_tpl_values
 
 	def single_item_values(item_i: int):
 		neg_i = -item_i
-		float_val = float(item_i * float_scale)
+		float_val = float((item_i + 1.0) * float_scale)
 		number_str = str(item_i)
 		number_len = len(number_str)
 		n_prefix_chars = max(1, max_padded_number_len - number_len)
