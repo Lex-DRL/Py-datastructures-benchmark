@@ -61,11 +61,17 @@ with _warnings.catch_warnings():
 	except ImportError:
 		# noinspection SpellCheckingInspection
 		_tqdm = None
-	if not callable(_tqdm):
-		# noinspection SpellCheckingInspection,PyUnusedLocal
-		def _tqdm(iterable: _Iterable[_T] = None, *args, **kwargs):
-			"""Dummy tqdm placeholder."""
-			return iterable
+
+
+# noinspection SpellCheckingInspection,PyUnusedLocal
+def _dummy_tqdm(iterable: _Iterable[_T] = None, *args, **kwargs):
+	"""Dummy tqdm placeholder."""
+	return iterable
+
+
+if not callable(_tqdm):
+	# noinspection SpellCheckingInspection
+	_tqdm = _dummy_tqdm
 
 
 _byte_kilo_sizes = ('', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi')
@@ -166,6 +172,7 @@ def test(
 	test_ram=False, test_read=True, test_set=True,
 	leave_progress=False,
 	long_greeting=False, print_attrs_list=False, print_summary=True,
+	no_prints=False, no_progress=False,
 	**extra_kwargs_swallower
 ):
 	"""
@@ -182,21 +189,22 @@ def test(
 		Obviously, if you specify 2 here but create 10k items, the script will
 		detect it and make all the strings as long as needed to make them all
 		the same size.
-		I.e., to fit: `"0:"` prefix, at least one random letter and the longest
+		I.e., to fit: `"0:"` prefix + at least one random letter + the longest
 		number. I.e, `"0:z1000"` - or 7 in this case.
 	:param test_ram:
 		Whether to measure memory consumption.
 
 		**ATTENTION:** this is by far the longest part of benchmark.
 		My tests have shown that consumed memory scales proportionally anyway, so
-		you might want to turn it off.
+		it's off by default.
 	:param test_read:
 		Whether to test attribute-read speed (for those types that support it).
 	:param test_set:
 		Whether to test attribute-assign speed (for those types that support it).
 	:param leave_progress:
 		Whether to keep progress-bar for each performed measurement after it's
-		finished. The main progressbar for initial data generation is kept anyway.
+		finished. The main progressbar for initial data generation is always kept
+		(unless `no_prints` is `True`).
 	:param long_greeting:
 		If `True`, shows a bit more detailed prompt for initial data generation.
 	:param print_attrs_list:
@@ -205,7 +213,18 @@ def test(
 	:param print_summary:
 		By default, outputs a summary with results for each type, as well as
 		combined chart.
+	:param no_prints: Suppress all the prints (useful when called from other script).
+	:param no_progress:
+	Display no progress bars. (They also won't be shown - with no errors -
+	if `tqdm` package is not installed).
 	"""
+	def dummy(*args, **kwargs):
+		pass
+
+	print_f = dummy if no_prints else print
+	# noinspection SpellCheckingInspection
+	progress_f = _dummy_tqdm if no_progress else _tqdm
+
 	n_str = format_thousands(n)
 	warning_msg = ' (this might take long)' if n > 100_000 else ''
 	ram_test_msg = f"Measuring size of the entire tuple in RAM{warning_msg}..."
@@ -221,12 +240,13 @@ def test(
 			greeting = (
 				f"\nTuple of {n_str} unique data tuples{attrs_list_str}..."
 			)
-		print(greeting)
+		print_f(greeting)
 
 		data_gen = data_values_iterator(n=n, min_str_len=min_str_len, )
-		return tuple(
-			_tqdm(data_gen, desc='', total=n, unit=' items', )
-		)
+		return tuple(progress_f(
+			data_gen, desc='', total=n, unit=' items',
+			leave=leave_progress if no_prints else True,
+		))
 
 	prepared_data = build_source_data_tuple()
 	dummy = TestResult(None, create_time=0.0, attr_access_time=0.0, attr_set_time=0.0)
@@ -237,7 +257,7 @@ def test(
 
 	# noinspection SpellCheckingInspection
 	def tuple_with_tqdm(iterable: _Iterable[_T]) -> _Tuple[float, _Tuple[_T, ...]]:
-		seq = _tqdm(iterable, desc='', total=n, leave=leave_progress, unit=' items', )
+		seq = progress_f(iterable, desc='', total=n, unit=' items', leave=leave_progress, )
 		start_time = _time.process_time()
 		res_tuple = tuple(seq)
 		return _time.process_time() - start_time, res_tuple
@@ -246,8 +266,8 @@ def test(
 	def measure_with_tqdm(items: _Iterable):
 		start_t = _time.process_time()
 		# noinspection PyUnusedLocal
-		for instance in _tqdm(
-			items, desc='', total=n, leave=leave_progress, unit=' items',
+		for instance in progress_f(
+			items, desc='', total=n, unit=' items', leave=leave_progress,
 		):
 			pass
 		return _time.process_time() - start_t
@@ -263,8 +283,8 @@ def test(
 
 		result = TestResult(container)
 
-		print(f"\nCreating a tuple of {n_str} <{type_name}> instances:")
-		print(
+		print_f(f"\nCreating a tuple of {n_str} <{type_name}> instances:")
+		print_f(
 			"Evaluating base-level creation overhead, not involving "
 			"actual instance creation..."
 		)
@@ -275,7 +295,7 @@ def test(
 		dummy_runs.create_time += 1
 		del _dummy
 
-		print(
+		print_f(
 			f"Creating the actual tuple of <{type_name}> items..."
 		)
 		result.create_time, big_tuple = tuple_with_tqdm(
@@ -283,33 +303,33 @@ def test(
 		)
 
 		if test_ram:
-			print(ram_test_msg)
+			print_f(ram_test_msg)
 			result.size_bytes = _asizeof(big_tuple)
-			print(human_bytes(result.size_bytes))
+			print_f(human_bytes(result.size_bytes))
 		_gc_collect()
 
 		if test_read and attr_reader is not None:
-			print("Testing attribute-access time:")
-			print("Evaluating base-level read overhead...")
+			print_f("Testing attribute-access time:")
+			print_f("Evaluating base-level read overhead...")
 			dummy.attr_access_time += measure_with_tqdm(
 				map(dummy_attr_reader, big_tuple)
 			)
 			dummy_runs.attr_access_time += 1
 
-			print(f"Reading values from <{type_name}> instances...")
+			print_f(f"Reading values from <{type_name}> instances...")
 			result.attr_access_time = measure_with_tqdm(
 				map(attr_reader, big_tuple)
 			)
 
 		if test_set and attr_setter is not None:
-			print("Testing attribute-set time:")
-			print("Evaluating base-level setting overhead...")
+			print_f("Testing attribute-set time:")
+			print_f("Evaluating base-level setting overhead...")
 			dummy.attr_set_time += measure_with_tqdm(
 				map(dummy_attr_setter, big_tuple)
 			)
 			dummy_runs.attr_set_time += 1
 
-			print(f"Setting values for <{type_name}> instances...")
+			print_f(f"Setting values for <{type_name}> instances...")
 			result.attr_set_time = measure_with_tqdm(
 				map(attr_setter, big_tuple)
 			)
@@ -331,7 +351,7 @@ def test(
 		dummy_runs.attr_set_time if dummy_runs.attr_set_time > 0 else 1
 	)
 
-	print(f"\nBenchmark complete: {n_str} items.")
+	print_f(f"\nBenchmark complete: {n_str} items.")
 
 	for res in all_results:
 		res.create_time -= dummy.create_time
@@ -341,12 +361,12 @@ def test(
 			res.attr_set_time -= dummy.attr_set_time
 
 		if print_summary:
-			print(f'\n{res.formatted_summary()}')
+			print_f(f'\n{res.formatted_summary()}')
 
-	if not(print_summary and len(tested_containers) > 1):
+	if len(tested_containers) < 2 or no_prints or not print_summary:
 		return all_results
 
-	print(f"\n{'=' * 40}\nRelative results:")
+	print_f(f"\n{'=' * 40}\nRelative results:")
 
 	def print_value_summary(
 		attr_getter: _C, val_name='Instance creation time',
@@ -356,10 +376,10 @@ def test(
 			attr_getter(x) for x in all_results if attr_getter(x) is not None
 		)
 		if max_val < 0.0001:
-			print(f"{val_name} - all values are too small")
+			print_f(f"{val_name} - all values are too small")
 			return
 
-		print(
+		print_f(
 			f"\n{val_name} (max = {val_formatter(max_val)}{unit}, "
 			f"{val_formatter(max_val*100/n)} per 100 instances):"
 		)
@@ -367,7 +387,7 @@ def test(
 			(100.0 * attr_getter(x) / max_val, _type_name(x.container))
 			for x in all_results if attr_getter(x) is not None
 		):
-			print(f'\t{percent:.3f}% - {tp_nm}')
+			print_f(f'\t{percent:.3f}% - {tp_nm}')
 
 	if test_ram:
 		print_value_summary(lambda x: x.size_bytes, 'RAM usage', human_bytes, '')
@@ -402,9 +422,10 @@ def test_from_cmd(*containers: type, **forced_kwargs):
 		return bool(value)
 
 	args_converters = dict(
-		n=to_int, min_str_len=to_int, as_kwargs=to_bool,
+		n=to_int, min_str_len=to_int,
 		test_ram=to_bool, test_read=to_bool, test_set=to_bool, leave_progress=to_bool,
 		long_greeting=to_bool, print_attrs_list=to_bool, print_summary=to_bool,
+		no_prints=to_bool, no_progress=to_bool,
 	)
 
 	kwargs = dict()
