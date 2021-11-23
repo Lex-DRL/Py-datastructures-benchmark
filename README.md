@@ -26,7 +26,7 @@ So hard, that it motivated me to finally write a small toolset to actually test 
 The benchmarking scripts here are designed to: 
 1. intentionally break low-level optimisations that Python might do *(such as multiple objects pointing to the same area in memory)*;
 2. have the actual data somewhat representative of real-life usage scenarios *(e.g., it's not just ints or floats or strings from a pre-defined set)*;
-3. be reproducible *(where possible, more on this below)*.
+3. be reproducible *(where possible, more on this at the very end, in Conclusions section)*.
 
 So it seems to me the dumbest possible approach is the best one here:
 1. When testing each container datatype, we need to create a big enough set (tuple) of this container instances, each having unique values for all of it's attributes. They need to be unique not just inside this instance, but across the whole set.
@@ -215,7 +215,7 @@ As expected, the truth is somewhere in between.
 
 James Murphy was right that `pydantic` and in some cases `attrs` are expensive. With `pydantic` being ridiculously expensive (relative to others). However, I was right with my concerns, too. The distribution is nowhere near the results James shown. Especially for RAM, where the winner (regular class with slots) is only twice better than loser (`OrderedDict`).
 
-Before continuing, there's very important thing to clarify: even though there's a clear performance difference in instance creation / attribute get/set time, all of them are basically nothing compared to the rest of your program running.
+Before continuing, there's very important thing to clarify: even though there's a clear performance difference in instance creation / attribute get/set time, all of them are basically nothing compared to the rest of your program running *(they're so small that it's even hard to reproduce **exactly** the same results for any test other than RAM)*.
 Even in this, extremely simple test example, an overwhelming majority of time was spent to generate the test data, not to build class instances from it. So bear in mind that even extremely slow `pydantinc` took seconds to process millions of instances, while **source data** for those instances took minutes to generate. Let alone how much it would take if the same amount of data was processed in some way / parsed / scraped from internet.
 
 To me, the only really important metric here is RAM consumption. With that said, though...
