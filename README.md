@@ -145,6 +145,22 @@ Detailed results are  in attached files *(look at the very end for summary, sort
 * [___result_300_000.txt](https://github.com/Lex-DRL/Py-datastructures-benchmark/blob/main/___result_300_000.txt)
 * [___result_5_000_000.txt](https://github.com/Lex-DRL/Py-datastructures-benchmark/blob/main/___result_5_000_000.txt)
 
+### Results as charts
+
+<details>
+<summary>Charts (as links to interactive versions)</summary>
+
+[![RAM](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=1474534386&amp;format=image)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=1474534386&amp;format=interactive)
+[![read attr time](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=478299149&format=image)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=478299149&format=interactive)
+
+[![instance creation time](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=1241848182&format=image)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=1241848182&format=interactive)
+[![instance creation time (exclude pydantic/attrs)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=911555262&format=image)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=911555262&format=interactive)
+
+[![set attr time](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=1055184344&format=image)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=1055184344&format=interactive)
+[![set attr time (exclude pydantic)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=28732167&format=image)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=28732167&format=interactive)
+
+</details>
+
 ### 300 K
 
 |                | RAM | create | read | set |
