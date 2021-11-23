@@ -163,7 +163,7 @@ class TestResult:
 def test(
 	*tested_containers: _Type,
 	n=1_000_000, min_str_len=35,
-	test_ram=True, test_read=True, test_set=True,
+	test_ram=False, test_read=True, test_set=True,
 	leave_progress=False,
 	long_greeting=False, print_attrs_list=False, print_summary=True,
 	**extra_kwargs_swallower
