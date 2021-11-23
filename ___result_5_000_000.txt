@@ -1,0 +1,255 @@
+Benchmark complete: 5_000_000 items.
+
+tuple:
+	size_bytes: 3.39 GiB
+	create_time: 0.741 seconds
+	attr_access_time: 0.434 seconds
+
+list:
+	size_bytes: 3.465 GiB
+	create_time: 4.866 seconds
+	attr_access_time: 0.403 seconds
+	attr_set_time: 1.293 seconds
+
+set:
+	size_bytes: 6.221 GiB
+	create_time: 14.725 seconds
+	attr_access_time: 1.278 seconds
+	attr_set_time: 6.887 seconds
+
+frozenset:
+	size_bytes: 6.221 GiB
+	create_time: 14.881 seconds
+	attr_access_time: 1.293 seconds
+
+dict:
+	size_bytes: 4.508 GiB
+	create_time: 3.006 seconds
+	attr_access_time: 0.715 seconds
+	attr_set_time: 1.731 seconds
+
+OrderedDict:
+	size_bytes: 6.892 GiB
+	create_time: 16.366 seconds
+	attr_access_time: 0.746 seconds
+	attr_set_time: 2.387 seconds
+
+SimpleNamespace:
+	size_bytes: 4.731 GiB
+	create_time: 4.506 seconds
+	attr_access_time: 0.824 seconds
+	attr_set_time: 1.840 seconds
+
+SimpleNamespaceSlots:
+	size_bytes: 4.508 GiB
+	create_time: 10.787 seconds
+	attr_access_time: 0.606 seconds
+	attr_set_time: 1.449 seconds
+
+SimpleNamespaceSlotsSet:
+	size_bytes: 4.508 GiB
+	create_time: 10.834 seconds
+	attr_access_time: 0.621 seconds
+	attr_set_time: 1.403 seconds
+
+SimpleNamespaceSlotsFrozen:
+	size_bytes: 4.508 GiB
+	create_time: 10.772 seconds
+	attr_access_time: 0.559 seconds
+	attr_set_time: 1.465 seconds
+
+namedtuple:
+	size_bytes: 3.39 GiB
+	create_time: 9.022 seconds
+	attr_access_time: 0.418 seconds
+
+NamedTuple:
+	size_bytes: 3.39 GiB
+	create_time: 9.319 seconds
+	attr_access_time: 0.403 seconds
+
+Class:
+	size_bytes: 3.763 GiB
+	create_time: 7.241 seconds
+	attr_access_time: 0.981 seconds
+	attr_set_time: 1.871 seconds
+
+ClassSlots:
+	size_bytes: 3.353 GiB
+	create_time: 9.303 seconds
+	attr_access_time: 0.543 seconds
+	attr_set_time: 1.403 seconds
+
+ClassSlotsSet:
+	size_bytes: 3.353 GiB
+	create_time: 9.350 seconds
+	attr_access_time: 0.590 seconds
+	attr_set_time: 1.434 seconds
+
+ClassSlotsFrozen:
+	size_bytes: 3.353 GiB
+	create_time: 9.366 seconds
+	attr_access_time: 0.559 seconds
+	attr_set_time: 1.449 seconds
+
+DataClass:
+	size_bytes: 3.763 GiB
+	create_time: 8.162 seconds
+	attr_access_time: 0.903 seconds
+	attr_set_time: 1.981 seconds
+
+DataClassSlots:
+	size_bytes: 3.949 GiB
+	create_time: 10.459 seconds
+	attr_access_time: 0.606 seconds
+	attr_set_time: 1.449 seconds
+
+DataClassSlotsSet:
+	size_bytes: 3.949 GiB
+	create_time: 10.428 seconds
+	attr_access_time: 0.590 seconds
+	attr_set_time: 1.449 seconds
+
+DataClassSlotsFrozen:
+	size_bytes: 3.949 GiB
+	create_time: 10.569 seconds
+	attr_access_time: 0.543 seconds
+	attr_set_time: 1.449 seconds
+
+AttrClass:
+	size_bytes: 3.763 GiB
+	create_time: 90.287 seconds
+	attr_access_time: 0.934 seconds
+	attr_set_time: 1.871 seconds
+
+AttrClassSlots:
+	size_bytes: 3.39 GiB
+	create_time: 92.975 seconds
+	attr_access_time: 0.559 seconds
+	attr_set_time: 1.403 seconds
+
+PydanticBase:
+	size_bytes: 4.768 GiB
+	create_time: 327.194 seconds
+	attr_access_time: 1.840 seconds
+	attr_set_time: 448.637 seconds
+
+PydanticDataClass:
+	size_bytes: 6.072 GiB
+	create_time: 348.850 seconds
+	attr_access_time: 1.153 seconds
+	attr_set_time: 313.653 seconds
+
+PydanticDataClass:
+	size_bytes: 6.072 GiB
+	create_time: 348.022 seconds
+	attr_access_time: 1.090 seconds
+	attr_set_time: 313.559 seconds
+
+========================================
+Relative results:
+
+RAM usage (max = 6.892 GiB, 144.531 KiB per 100 instances):
+	48.649% - ClassSlots
+	48.649% - ClassSlotsFrozen
+	48.649% - ClassSlotsSet
+	49.189% - AttrClassSlots
+	49.189% - NamedTuple
+	49.189% - namedtuple
+	49.189% - tuple
+	50.270% - list
+	54.595% - AttrClass
+	54.595% - Class
+	54.595% - DataClass
+	57.297% - DataClassSlots
+	57.297% - DataClassSlotsFrozen
+	57.297% - DataClassSlotsSet
+	65.405% - SimpleNamespaceSlots
+	65.405% - SimpleNamespaceSlotsFrozen
+	65.405% - SimpleNamespaceSlotsSet
+	65.405% - dict
+	68.649% - SimpleNamespace
+	69.189% - PydanticBase
+	88.108% - PydanticDataClass
+	88.108% - PydanticDataClass
+	90.270% - frozenset
+	90.270% - set
+	100.000% - OrderedDict
+
+Instance creation time (max = 348.8500 seconds, 0.0070 per 100 instances):
+	0.212% - tuple
+	0.862% - dict
+	1.292% - SimpleNamespace
+	1.395% - list
+	2.076% - Class
+	2.340% - DataClass
+	2.586% - namedtuple
+	2.667% - ClassSlots
+	2.671% - NamedTuple
+	2.680% - ClassSlotsSet
+	2.685% - ClassSlotsFrozen
+	2.989% - DataClassSlotsSet
+	2.998% - DataClassSlots
+	3.030% - DataClassSlotsFrozen
+	3.088% - SimpleNamespaceSlotsFrozen
+	3.092% - SimpleNamespaceSlots
+	3.106% - SimpleNamespaceSlotsSet
+	4.221% - set
+	4.266% - frozenset
+	4.691% - OrderedDict
+	25.881% - AttrClass
+	26.652% - AttrClassSlots
+	93.792% - PydanticBase
+	99.763% - PydanticDataClass
+	100.000% - PydanticDataClass
+
+Attribute-access time (max = 1.8400 seconds, 0.0000 per 100 instances):
+	21.875% - NamedTuple
+	21.875% - list
+	22.724% - namedtuple
+	23.573% - tuple
+	29.518% - ClassSlots
+	29.518% - DataClassSlotsFrozen
+	30.367% - AttrClassSlots
+	30.367% - ClassSlotsFrozen
+	30.367% - SimpleNamespaceSlotsFrozen
+	32.065% - ClassSlotsSet
+	32.065% - DataClassSlotsSet
+	32.914% - DataClassSlots
+	32.914% - SimpleNamespaceSlots
+	33.764% - SimpleNamespaceSlotsSet
+	38.859% - dict
+	40.557% - OrderedDict
+	44.803% - SimpleNamespace
+	49.049% - DataClass
+	50.747% - AttrClass
+	53.295% - Class
+	59.239% - PydanticDataClass
+	62.636% - PydanticDataClass
+	69.429% - set
+	70.279% - frozenset
+	100.000% - PydanticBase
+
+Attribute-set time (max = 448.6369 seconds, 0.0090 per 100 instances):
+	0.288% - list
+	0.313% - AttrClassSlots
+	0.313% - ClassSlots
+	0.313% - SimpleNamespaceSlotsSet
+	0.320% - ClassSlotsSet
+	0.323% - ClassSlotsFrozen
+	0.323% - DataClassSlots
+	0.323% - DataClassSlotsFrozen
+	0.323% - DataClassSlotsSet
+	0.323% - SimpleNamespaceSlots
+	0.327% - SimpleNamespaceSlotsFrozen
+	0.386% - dict
+	0.410% - SimpleNamespace
+	0.417% - AttrClass
+	0.417% - Class
+	0.441% - DataClass
+	0.532% - OrderedDict
+	1.535% - set
+	69.891% - PydanticDataClass
+	69.912% - PydanticDataClass
+	100.000% - PydanticBase
+	
