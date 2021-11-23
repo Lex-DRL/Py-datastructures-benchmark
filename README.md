@@ -213,6 +213,7 @@ Detailed results are  in attached files *(look at the very end for summary, sort
 
 [^set_note]:
 	You can't really read or assign values to set members. Therefore, my code does the next best thing: calls `set.update()` to "set" values and just unpacks set contents as "read".
+
 [^pyd_dataclass_note]
 	At the moment of testing, `pydantic` haven't implemented slots in it's version of dataclass *(at least for Python 3.7)*. In my tests I try define `PydanticDataClassSlots` as if slots support was there, and fall back to "simple" `PydanticDataClass` if it's not.
 	So for now, `PydanticDataClassSlots` in my code is just another alias for `PydanticDataClass` which causes it to be tested twice. Here I show an averaged result.
