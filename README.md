@@ -137,7 +137,7 @@ When launched from command line, the following arguments supported - as `arg=val
 
 ## Test results
 
-With all the preamble out of the way, here's' the stuff you came for.
+With all the preamble out of the way, here's the stuff you came for.
 
 I've ran the benchmark two times - with 300K items and with 5M - on AMD Ryzen 2700x with 32 GiB of RAM.
 
