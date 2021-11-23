@@ -159,9 +159,9 @@ Detailed results are  in attached files *(look at the very end for summary, sort
 [![set attr time](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=1055184344&format=image)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=1055184344&format=interactive)
 [![set attr time (exclude pydantic)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=28732167&format=image)](https://docs.google.com/spreadsheets/d/e/2PACX-1vTUo_2fde9E8xQEG0ztkjg68nxHjeKwjzsTNk0l6jT_2NoM6flt7x3eQqt8xC5hDdE6b5ZeWiCK1cXY/pubchart?oid=28732167&format=interactive)
 
-### Tables
-
 </details>
+
+### Tables
 
 <details>
 <summary>Tables</summary>
