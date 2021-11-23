@@ -9,14 +9,15 @@ from typing import *
 from pathlib import Path as _Path
 from sys import path as _sys_path
 # we might need to add the script dir to sys.path before we proceed:
-# __file__ = 'P:/1-Scripts/_Python/Py-datastructures-benchmark/bench_data_container.py'
-_module_dir = _Path(__file__).parent
+# __file__ = 'P:/1-Scripts/_Python/Py-datastructures-benchmark/testing-scripts/bench_data_container.py'
+_tests_dir = _Path(__file__).absolute().parent
+_module_dir = _tests_dir.parent
 _module_dir_str = str(_module_dir).replace('\\', '/')
 if _module_dir_str not in _sys_path:
-	_sys_path.append(_module_dir)
+	_sys_path.append(_module_dir_str)
 
 from itertools import chain
-out_file_base = _module_dir / 'test-'
+out_file_base = _tests_dir / 'test-'
 
 
 template = r"""# encoding: utf-8
@@ -26,10 +27,10 @@ __author__ = 'Lex Darlog (DRL)'
 from pathlib import Path as _Path
 from sys import path as _sys_path
 # we might need to add the script dir to sys.path before we proceed:
-_module_dir = _Path(__file__).parent
+_module_dir = _Path(__file__).absolute().parent.parent
 _module_dir_str = str(_module_dir).replace('\\', '/')
 if _module_dir_str not in _sys_path:
-	_sys_path.append(_module_dir)
+	_sys_path.append(_module_dir_str)
 
 from bench_data_container import *
 
@@ -70,9 +71,6 @@ options_per_type: Dict[str, Dict] = dict(
 	PydanticDataClassSlots=dict(),
 )
 
-qqq = iter(options_per_type.items())
-next(qqq)
-out_type, options = next(qqq)
 for out_type, options in options_per_type.items():
 	func_args = format_options(**options)
 	func_args = ', '.join([out_type, func_args]) if func_args else out_type
