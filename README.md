@@ -145,7 +145,7 @@ Detailed results are  in attached files *(look at the very end for summary, sort
 * [___result_300_000.txt](https://github.com/Lex-DRL/Py-datastructures-benchmark/blob/main/___result_300_000.txt)
 * [___result_5_000_000.txt](https://github.com/Lex-DRL/Py-datastructures-benchmark/blob/main/___result_5_000_000.txt)
 
-### Results as charts
+### Charts
 
 <details>
 <summary>Charts (as links to interactive versions)</summary>
