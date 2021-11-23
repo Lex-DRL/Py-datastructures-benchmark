@@ -168,6 +168,44 @@ def test(
 	long_greeting=False, print_attrs_list=False, print_summary=True,
 	**extra_kwargs_swallower
 ):
+	"""
+
+	:param tested_containers: data types to test.
+	:param n:
+		Number of instances to create.
+
+		**ATTENTION:** 1 million is specified by default. It's good for
+		benchmarking, but it will eat up your RAM  and take LOOONG to finish.
+	:param min_str_len:
+		This is how long generated strings need to be.
+
+		Obviously, if you specify 2 here but create 10k items, the script will
+		detect it and make all the strings as long as needed to make them all
+		the same size.
+		I.e., to fit: `"0:"` prefix, at least one random letter and the longest
+		number. I.e, `"0:z1000"` - or 7 in this case.
+	:param test_ram:
+		Whether to measure memory consumption.
+
+		**ATTENTION:** this is by far the longest part of benchmark.
+		My tests have shown that consumed memory scales proportionally anyway, so
+		you might want to turn it off.
+	:param test_read:
+		Whether to test attribute-read speed (for those types that support it).
+	:param test_set:
+		Whether to test attribute-assign speed (for those types that support it).
+	:param leave_progress:
+		Whether to keep progress-bar for each performed measurement after it's
+		finished. The main progressbar for initial data generation is kept anyway.
+	:param long_greeting:
+		If `True`, shows a bit more detailed prompt for initial data generation.
+	:param print_attrs_list:
+		If `True`, appends the list of names and types for the attributes
+		on created instances.
+	:param print_summary:
+		By default, outputs a summary with results for each type, as well as
+		combined chart.
+	"""
 	n_str = format_thousands(n)
 	warning_msg = ' (this might take long)' if n > 100_000 else ''
 	ram_test_msg = f"Measuring size of the entire tuple in RAM{warning_msg}..."
