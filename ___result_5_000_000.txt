@@ -1,3 +1,10 @@
+python test---ALL.py n=5_000_000 test_ram=True
+
+Tuple of 5_000_000 unique data tuples...
+100%|███████████████████████████████████| 5000000/5000000 [05:06<00:00, 16298.54 items/s]
+
+...
+
 Benchmark complete: 5_000_000 items.
 
 tuple:
