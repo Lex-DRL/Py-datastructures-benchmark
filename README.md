@@ -45,7 +45,7 @@ So it seems to me the dumbest possible approach is the best one here:
 		* 42 is the actual `i` value.
 		* the total string length is the same across the set. Random characters are used as padding for smaller number. 
 		
-	All of the above ensures each attribute for each instance across the set has it's own set of unique values. It also guarantees this underlying data always has the same size *(exception: python internally optimizes all the ints in `[-5, 256]` range - see [stackoverflow](https://stackoverflow.com/questions/306313/is-operator-behaves-unexpectedly-with-integers) - but it will be neglegeable considering total number of instances we'll create)*.
+	All of the above ensures each attribute for each instance across the set has it's own unique value. It also guarantees this underlying data always has the same size *(exception: python internally optimizes all the ints in `[-5, 256]` range - see [stackoverflow](https://stackoverflow.com/questions/306313/is-operator-behaves-unexpectedly-with-integers) - but it will be negligible considering total number of instances we'll create)*.
 	And it prevents Python from optimizing anything under the hood (like it might be, if we used just leading zeros instead of random chars).
 3. Then, we generate a big set of those values, enough to fill GiBs of RAM *(it's millions of instances)*. We go that big to average out results.
 4. And finally, we start testing each type of data container for:
