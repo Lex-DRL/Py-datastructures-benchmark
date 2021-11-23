@@ -10,6 +10,7 @@ with _warnings.catch_warnings():
 	# some modules like to raise warnings on import
 	_warnings.simplefilter('ignore')
 
+	from gc import collect as _gc_collect
 	from pathlib import Path as _Path
 	from sys import path as _sys_path
 
@@ -22,12 +23,10 @@ if _module_dir_str not in _sys_path:
 
 # noinspection PyPep8Naming
 from typing import (
-	Any as _Any,
-	Dict as _Dict,
-	Generator as _Generator,
+	Callable as _C,
 	Iterable as _Iterable,
-	NamedTuple as _NamedTuple,
 	Optional as _O,
+	Tuple as _Tuple,
 	Type as _Type,
 	TypeVar as _TypeVar,
 	Union as _U,
@@ -41,11 +40,11 @@ import time as _time
 from dataclasses import dataclass as _dataclass
 
 from _bench_types import (
+	_tpl_values,
+
 	_attr_names,
 	_type_name,
 	_format_items_list,
-	_read_attribs, _read_attribs_from_dict, _read_attribs_from_seq,
-	_set_attribs, _set_attribs_for_dict, _set_attribs_for_seq,
 )
 from _bench_data import *
 
@@ -134,17 +133,16 @@ def format_thousands(number: _U[_if, str], spacer="_"):
 
 @_dataclass
 class TestResult:
-	container: _Type
-	n: int
+	container: _O[_Type]
 	size_bytes: _O[int] = None
-	create_time: float = 0.0
-	attr_access_time: _O[float] = None
-	attr_set_time: _O[float] = None
+	create_time: _if = 0.0
+	attr_access_time: _O[_if] = None
+	attr_set_time: _O[_if] = None
 
 	@staticmethod
 	def format_result_value(name: str, value, indent='\t'):
-		if name == 'n':
-			return f'{indent}{name}: {format_thousands(value)}'
+		if name == 'container':
+			return f'{indent}{name}: {_type_name(value)}'
 		if name == 'size_bytes':
 			return f'{indent}{name}: {human_bytes(value)}'
 		if name.endswith('_time'):
@@ -156,118 +154,214 @@ class TestResult:
 			self.format_result_value(k, v) for k, v in self.__dict__.items()
 			if v is not None and k != 'container'
 		)
-		return f'{_type_name(self.container)}:\n{summ_values_str}'
+		type_name = (
+			'dummy run' if (self.container is None) else _type_name(self.container)
+		)
+		return f'{type_name}:\n{summ_values_str}'
 
 
 def test(
-	container: _Type = dict, n=10_000_000, min_str_len=35, as_kwargs=True,
-	test_ram=True, test_read=True, test_set=True, leave_progress=False,
+	*tested_containers: _Type,
+	n=10_000_000, min_str_len=35,
+	test_ram=True, test_read=True, test_set=True,
+	leave_progress=False,
 	long_greeting=False, print_attrs_list=False, print_summary=True,
 	**extra_kwargs_swallower
 ):
-	type_name = _type_name(container)
-	attrs_list_str = f': {{\n{_format_items_list(1)}\n}}' if print_attrs_list else ''
-	if long_greeting:
-		greeting = (
-			f"\nBuilding a tuple of {format_thousands(n)} unique <{type_name}> "
-			f"instances, each with {len(_attr_names)} values{attrs_list_str}..."
+	n_str = format_thousands(n)
+	warning_msg = ' (this might take long)' if n > 100_000 else ''
+	ram_test_msg = f"Measuring size of the entire tuple in RAM{warning_msg}..."
+
+	def build_source_data_tuple() -> _Tuple[_tpl_values, ...]:
+		attrs_list_str = f': {{\n{_format_items_list(1)}\n}}' if print_attrs_list else ''
+		if long_greeting:
+			greeting = (
+				f"\nPre-generating a common tuple of {n_str} unique data tuples"
+				f", each with {len(_attr_names)} values{attrs_list_str}..."
+			)
+		else:
+			greeting = (
+				f"\nTuple of {n_str} unique data tuples{attrs_list_str}..."
+			)
+		print(greeting)
+
+		data_gen = data_values_iterator(n=n, min_str_len=min_str_len, )
+		return tuple(
+			_tqdm(data_gen, desc='', total=n, unit=' items', )
 		)
-	else:
-		greeting = (
-			f"\nTuple of {format_thousands(n)} unique <{type_name}> "
-			f"items{attrs_list_str}..."
-		)
-	print(greeting)
-	print("Pre-Generating data...")
 
-	data_gen = data_generator(
-		None, n=n, min_str_len=min_str_len, as_kwargs=as_kwargs
-	)
-	prepared_data = tuple(
-		_tqdm(data_gen, desc='', total=n, unit=' items', )
-	)
+	prepared_data = build_source_data_tuple()
+	dummy = TestResult(None, create_time=0.0, attr_access_time=0.0, attr_set_time=0.0)
+	dummy_runs = TestResult(None, create_time=0, attr_access_time=0, attr_set_time=0)
+	dummy_constructor: _C[[_tpl_values], _T] = select_constructor(None)
+	dummy_attr_reader = select_attribs_reader(None)
+	dummy_attr_setter = select_attribs_setter(None)
 
-	print("Passing this data to create the tuple and measure creation time...")
-	if as_kwargs:
-		data_gen = (container(**kw_vals) for kw_vals in prepared_data)
-	else:
-		data_gen = (container(vals) for vals in prepared_data)
+	# noinspection SpellCheckingInspection
+	def tuple_with_tqdm(iterable: _Iterable[_T]) -> _Tuple[float, _Tuple[_T, ...]]:
+		seq = _tqdm(iterable, desc='', total=n, leave=leave_progress, unit=' items', )
+		start_time = _time.process_time()
+		res_tuple = tuple(seq)
+		return _time.process_time() - start_time, res_tuple
 
-	res = TestResult(container, n)
-
-	start_time = _time.process_time()
-	big_tuple = tuple(
-		_tqdm(data_gen, desc='', total=n, leave=leave_progress, unit=' items', )
-	)
-	res.create_time = _time.process_time() - start_time
-	del prepared_data
-
-	if test_ram:
-		warning_msg = ' (this might take long)' if n > 100_000 else ''
-		print(f"Measuring size of the entire tuple in RAM{warning_msg}...")
-		res.size_bytes = _asizeof(big_tuple)
-
-	def measure_iteration_over_items(items: _Iterable):
+	# noinspection SpellCheckingInspection
+	def measure_with_tqdm(items: _Iterable):
 		start_t = _time.process_time()
+		# noinspection PyUnusedLocal
 		for instance in _tqdm(
-			items,
-			desc='', total=n, leave=leave_progress, unit=' items',
+			items, desc='', total=n, leave=leave_progress, unit=' items',
 		):
 			pass
 		return _time.process_time() - start_t
 
-	attr_access_f = _read_attribs
-	attr_set_f = _set_attribs
-	if as_kwargs:
-		if issubclass(container, dict):
-			attr_access_f = _read_attribs_from_dict
-			attr_set_f = _set_attribs_for_dict
-	else:
-		attr_access_f = _read_attribs_from_seq
-		attr_set_f = _set_attribs_for_seq
+	def test_single_container(container: _Type):
+		if not isinstance(container, type):
+			raise TypeError(f"Unknown container type: {container}")
+
+		type_name = _type_name(container)
+		constructor: _C[[_tpl_values], _T] = select_constructor(container)
+		attr_reader = select_attribs_reader(container)
+		attr_setter = select_attribs_setter(container)
+
+		result = TestResult(container)
+
+		print(f"\nCreating a tuple of {n_str} <{type_name}> instances:")
+		print(
+			"Evaluating base-level creation overhead, not involving "
+			"actual instance creation..."
+		)
+		dummy_t, _dummy = tuple_with_tqdm(
+			map(dummy_constructor, prepared_data)
+		)
+		dummy.create_time += dummy_t
+		dummy_runs.create_time += 1
+		del _dummy
+
+		print(
+			f"Creating the actual tuple of <{type_name}> items..."
+		)
+		result.create_time, big_tuple = tuple_with_tqdm(
+			map(constructor, prepared_data)
+		)
+
+		if test_ram:
+			print(ram_test_msg)
+			result.size_bytes = _asizeof(big_tuple)
+			print(human_bytes(result.size_bytes))
+		_gc_collect()
+
+		if test_read and attr_reader is not None:
+			print("Testing attribute-access time:")
+			print("Evaluating base-level read overhead...")
+			dummy.attr_access_time += measure_with_tqdm(
+				map(dummy_attr_reader, big_tuple)
+			)
+			dummy_runs.attr_access_time += 1
+
+			print(f"Reading values from <{type_name}> instances...")
+			result.attr_access_time = measure_with_tqdm(
+				map(attr_reader, big_tuple)
+			)
+
+		if test_set and attr_setter is not None:
+			print("Testing attribute-set time:")
+			print("Evaluating base-level setting overhead...")
+			dummy.attr_set_time += measure_with_tqdm(
+				map(dummy_attr_setter, big_tuple)
+			)
+			dummy_runs.attr_set_time += 1
+
+			print(f"Setting values for <{type_name}> instances...")
+			result.attr_set_time = measure_with_tqdm(
+				map(attr_setter, big_tuple)
+			)
+
+		del big_tuple
+		_gc_collect()
+		return result
+
+	all_results = tuple(
+		test_single_container(cont) for cont in tested_containers
+	)
+
+	# calculate average base-level times (for more precision):
+	dummy.create_time /= dummy_runs.create_time if dummy_runs.create_time > 0 else 1
+	dummy.attr_access_time /= (
+		dummy_runs.attr_access_time if dummy_runs.attr_access_time > 0 else 1
+	)
+	dummy.attr_set_time /= (
+		dummy_runs.attr_set_time if dummy_runs.attr_set_time > 0 else 1
+	)
+
+	print(f"\nBenchmark complete: {n_str} items.")
+
+	for res in all_results:
+		res.create_time -= dummy.create_time
+		if res.attr_access_time is not None:
+			res.attr_access_time -= dummy.attr_access_time
+		if res.attr_set_time is not None:
+			res.attr_set_time -= dummy.attr_set_time
+
+		if print_summary:
+			print(f'\n{res.formatted_summary()}')
+
+	if not(print_summary and len(tested_containers) > 1):
+		return all_results
+
+	print(f"\n{'=' * 40}\nRelative results:")
+
+	def print_value_summary(
+		attr_getter: _C, val_name='Instance creation time',
+		val_formatter=lambda v: f'{v:.4f}', unit=' seconds'
+	):
+		max_val = max(
+			attr_getter(x) for x in all_results if attr_getter(x) is not None
+		)
+		if max_val < 0.0001:
+			print(f"{val_name} - all values are too small")
+			return
+
+		print(
+			f"\n{val_name} (max = {val_formatter(max_val)}{unit}, "
+			f"{val_formatter(max_val*100/n)} per 100 instances):"
+		)
+		for percent, tp_nm in sorted(
+			(100.0 * attr_getter(x) / max_val, _type_name(x.container))
+			for x in all_results if attr_getter(x) is not None
+		):
+			print(f'\t{percent:.3f}% - {tp_nm}')
+
+	if test_ram:
+		print_value_summary(lambda x: x.size_bytes, 'RAM usage', human_bytes, '')
+
+	print_value_summary(lambda x: x.create_time, 'Instance creation time')
 
 	if test_read:
-		print(f"Test reading values from <{type_name}> instances...")
-		res.attr_access_time = measure_iteration_over_items(
-			map(attr_access_f, big_tuple)
-		)
+		print_value_summary(lambda x: x.attr_access_time, 'Attribute-access time')
 
 	if test_set:
-		# use the same instance-values-dict to set attribs for ALL the instances:
-		test_values_dict: dict = next(data_generator(
-			None, n=1, min_str_len=min_str_len, as_kwargs=True
-		))
-		test_values_iter = (test_values_dict for _ in range(n))
-		print(f"Test setting values for <{type_name}> instances...")
-		res.attr_set_time = measure_iteration_over_items(
-			map(attr_set_f, big_tuple, test_values_iter)
-		)
+		print_value_summary(lambda x: x.attr_set_time, 'Attribute-set time')
 
-	if print_summary:
-		print(f'\n{res.formatted_summary()}')
-	return res
+	return all_results
 
 
-def test_from_cmd(container: type, **forced_kwargs):
+def test_from_cmd(*containers: type, **forced_kwargs):
 	import sys
 	from distutils.util import strtobool as bbb
 
-	if not isinstance(container, type):
-		raise TypeError(f"Unknown container type: {container}")
-
-	def to_int(val):
-		if isinstance(val, str):
-			val = val.strip()
-		if not val:
+	def to_int(value):
+		if isinstance(value, str):
+			value = value.strip()
+		if not value:
 			return 0
-		return int(val)
+		return int(value)
 
-	def to_bool(val):
-		if not val:
+	def to_bool(value):
+		if not value:
 			return False
-		if isinstance(val, str):
-			val = bbb(val)
-		return bool(val)
+		if isinstance(value, str):
+			value = bbb(value)
+		return bool(value)
 
 	args_converters = dict(
 		n=to_int, min_str_len=to_int, as_kwargs=to_bool,
@@ -303,7 +397,7 @@ def test_from_cmd(container: type, **forced_kwargs):
 			if arg not in forced_kwargs and val:
 				kwargs[arg] = converter(val)
 
-	test(container, **forced_kwargs, **kwargs)
+	test(*containers, **forced_kwargs, **kwargs)
 
 
 if __name__ == '__main__':

@@ -40,6 +40,12 @@ from pydantic.fields import ModelField as _pydModelField
 
 
 _tpl_ii = _Tuple[int, int]
+_tpl_values = _Tuple[
+	int,
+	_tpl_ii, float, str,
+	_tpl_ii, float, str,
+	_tpl_ii, float, str,
+]
 _attr_names = (
 	'i',
 	'it0', 'f0', 's0',
@@ -72,9 +78,9 @@ class _Defaults:
 	it0: _tpl_ii = (-69, 0)
 	it1: _tpl_ii = (-69, 1)
 	it2: _tpl_ii = (-69, 2)
-	f0 = 69.0
-	f1 = 169.0
-	f2 = 269.0
+	f0 = -69.0
+	f1 = -169.0
+	f2 = -269.0
 	s0 = '0:aBcXXx69'
 	s1 = '1:aBcXXx69'
 	s2 = '2:aBcXXx69'
@@ -102,63 +108,6 @@ def _read_attribs(self):
 		self.it1, self.f1, self.s1,
 		self.it2, self.f2, self.s2,
 	)
-
-
-def _read_attribs_from_dict(self):
-	return (
-		self["i"],
-		self["it0"], self["f0"], self["s0"],
-		self["it1"], self["f1"], self["s1"],
-		self["it2"], self["f2"], self["s2"],
-	)
-
-
-def _read_attribs_from_seq(self):
-	return (
-		self[0],
-		self[1], self[2], self[3],
-		self[4], self[5], self[6],
-		self[7], self[8], self[9],
-	)
-
-
-def _set_attribs(self, values: dict):
-	self.i = values["i"]
-	self.it0 = values["it0"]
-	self.f0 = values["f0"]
-	self.s0 = values["s0"]
-	self.it1 = values["it1"]
-	self.f1 = values["f1"]
-	self.s1 = values["s1"]
-	self.it2 = values["it2"]
-	self.f2 = values["f2"]
-	self.s2 = values["s2"]
-
-
-def _set_attribs_for_dict(self: dict, values: dict):
-	self["i"] = values["i"]
-	self["it0"] = values["it0"]
-	self["f0"] = values["f0"]
-	self["s0"] = values["s0"]
-	self["it1"] = values["it1"]
-	self["f1"] = values["f1"]
-	self["s1"] = values["s1"]
-	self["it2"] = values["it2"]
-	self["f2"] = values["f2"]
-	self["s2"] = values["s2"]
-
-
-def _set_attribs_for_seq(self, values: dict):
-	self[0] = values["i"]
-	self[1] = values["it0"]
-	self[2] = values["f0"]
-	self[3] = values["s0"]
-	self[4] = values["it1"]
-	self[5] = values["f1"]
-	self[6] = values["s1"]
-	self[7] = values["it2"]
-	self[8] = values["f2"]
-	self[9] = values["s2"]
 
 
 def _instance_repr(self):
@@ -576,9 +525,9 @@ def _val_flt_f(i: int, min=0.0, max=100.0):
 	return validator
 
 
-_val_f0 = _val_flt_f(0, 0.0, 100.0)
-_val_f1 = _val_flt_f(1, 100.0, 200.0)
-_val_f2 = _val_flt_f(2, 200.0, 300.0)
+_val_f0 = _val_flt_f(0, -100.0, 0.0)
+_val_f1 = _val_flt_f(1, -200.0, -100.0)
+_val_f2 = _val_flt_f(2, -300.0, -200.0)
 
 
 def _val_s_common(
@@ -735,13 +684,13 @@ class PydanticBase(_pydBaseModel):
 
 	i: int = _pydField(default=_Defaults.i, gt=-1)
 	it0: _tpl_ii = _pydField(default_factory=_default_it0_f)
-	f0: float = _pydField(default=_Defaults.f0, ge=0.0, le=100.0)
+	f0: float = _pydField(default=_Defaults.f0, ge=-100.0, le=0.0)
 	s0: str = _Defaults.s0
 	it1: _tpl_ii = _pydField(default_factory=_default_it1_f)
-	f1: float = _pydField(default=_Defaults.f1, ge=100.0, le=200.0)
+	f1: float = _pydField(default=_Defaults.f1, ge=-200.0, le=-100.0)
 	s1: str = _Defaults.s1
 	it2: _tpl_ii = _pydField(default_factory=_default_it2_f)
-	f2: float = _pydField(default=_Defaults.f2, ge=200.0, le=300.0)
+	f2: float = _pydField(default=_Defaults.f2, ge=-300.0, le=-200.0)
 	s2: str = _Defaults.s2
 
 	_val_it0 = _pyd_val_it('it0', i=0)
@@ -761,13 +710,13 @@ class PydanticBase(_pydBaseModel):
 class PydanticDataClass:
 	i: int = _pydField(default=_Defaults.i, gt=-1)
 	it0: _tpl_ii = _pydField(default_factory=_default_it0_f)
-	f0: float = _pydField(default=_Defaults.f0, ge=0.0, le=100.0)
+	f0: float = _pydField(default=_Defaults.f0, ge=-100.0, le=0.0)
 	s0: str = _Defaults.s0
 	it1: _tpl_ii = _pydField(default_factory=_default_it1_f)
-	f1: float = _pydField(default=_Defaults.f1, ge=100.0, le=200.0)
+	f1: float = _pydField(default=_Defaults.f1, ge=-200.0, le=-100.0)
 	s1: str = _Defaults.s1
 	it2: _tpl_ii = _pydField(default_factory=_default_it2_f)
-	f2: float = _pydField(default=_Defaults.f2, ge=200.0, le=300.0)
+	f2: float = _pydField(default=_Defaults.f2, ge=-300.0, le=-200.0)
 	s2: str = _Defaults.s2
 
 	_val_it0 = _pyd_val_it('it0', i=0)
@@ -788,13 +737,13 @@ try:
 	class PydanticDataClassSlots:
 		i: int = _pydField(default=_Defaults.i, gt=-1)
 		it0: _tpl_ii = _pydField(default_factory=_default_it0_f)
-		f0: float = _pydField(default=_Defaults.f0, ge=0.0, le=100.0)
+		f0: float = _pydField(default=_Defaults.f0, ge=-100.0, le=0.0)
 		s0: str = _Defaults.s0
 		it1: _tpl_ii = _pydField(default_factory=_default_it1_f)
-		f1: float = _pydField(default=_Defaults.f1, ge=100.0, le=200.0)
+		f1: float = _pydField(default=_Defaults.f1, ge=-200.0, le=-100.0)
 		s1: str = _Defaults.s1
 		it2: _tpl_ii = _pydField(default_factory=_default_it2_f)
-		f2: float = _pydField(default=_Defaults.f2, ge=200.0, le=300.0)
+		f2: float = _pydField(default=_Defaults.f2, ge=-300.0, le=-200.0)
 		s2: str = _Defaults.s2
 
 		_val_it0 = _pyd_val_it('it0', i=0)
