@@ -162,7 +162,7 @@ class TestResult:
 
 def test(
 	*tested_containers: _Type,
-	n=10_000_000, min_str_len=35,
+	n=1_000_000, min_str_len=35,
 	test_ram=True, test_read=True, test_set=True,
 	leave_progress=False,
 	long_greeting=False, print_attrs_list=False, print_summary=True,

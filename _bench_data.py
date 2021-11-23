@@ -32,7 +32,7 @@ _T = _TypeVar('T')
 _random_char_f = _partial(_choice, tuple(_letters))
 
 
-def data_values_iterator(n=10_000_000, min_str_len=35, ) -> _Iterator[_tpl_values]:
+def data_values_iterator(n=1_000_000, min_str_len=35, ) -> _Iterator[_tpl_values]:
 	n = max(int(n), 1)
 	max_padded_number_len = max(
 		2,  # even with single-digit number, it will be 2 wit at least 1 char
@@ -323,7 +323,7 @@ def select_attribs_setter(container: _Type[_T]) -> _O[_C[[_T], _tpl_values]]:
 
 
 def _data_generator(
-	container: _Type[_T] = None, n=10_000_000, min_str_len=35,
+	container: _Type[_T] = None, n=1_000_000, min_str_len=35,
 ) -> _Iterator[_T]:
 	constructor = select_constructor(container)
 	return (
